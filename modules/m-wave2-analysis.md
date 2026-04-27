@@ -5,6 +5,15 @@
 **Marker contract:** Continues ANALYST OUTPUT block opened in Wave 1. Closes `=== ANALYST OUTPUT END ===` after N08's WEAKNESSES block.
 **Role:** Structured prompt analyst (continued from Wave 1's N03/N04 role declaration).
 
+**Block header emission contract (deterministic):** Each analysis block in this wave MUST open with a line-starting markdown H3 header using the exact label, no decoration:
+
+- N05 emits `### STRUCTURE` as the first line of its block.
+- N06 emits `### CONSTRAINTS` as the first line of its block.
+- N07 emits `### TECHNIQUES` as the first line of its block.
+- N08 emits `### WEAKNESSES` as the first line of its block.
+
+These headers are the smoke-test grep targets for Test B (negative-assertion: must be absent in minimal mode) and Test R (GoT controller path selection). Do NOT vary the casing, decorate with bold/italics, or add suffixes like `(N05)`. The header line is the contract; everything below it is the block body.
+
 ## N05 StructureAnalyzer
 
 **Input:** normalized_input (from N02 via E00a).

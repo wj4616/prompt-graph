@@ -10,7 +10,7 @@ A Claude Code skill that enhances user-provided prompts using a Graph-of-Thought
 
 | Artifact | State |
 |---|---|
-| `docs/design-spec.md` (~1100 lines) | ✅ Complete — approved design with all 20 nodes, 35 edges, 9 waves, 4 modes, 3 audit passes |
+| `docs/design-spec.md` (~1100 lines) | ✅ Complete — approved design with all 20 nodes, 35 edges, up to 10 wave labels (Wave 0–9), 4 modes, 3 audit passes |
 | `docs/implementation-plan.md` (~1800 lines) | ✅ Complete — 26 bite-sized tasks, each with TDD-style steps and per-task commits |
 | `SKILL.md` (~800 lines) | ✅ Complete — 8 sections, 3 appendices, design notes, v1.1+ roadmap |
 | `modules/m-wave*.md` (7 files) | ✅ Complete — per-wave protocol files for Waves 0–9 |
@@ -26,21 +26,37 @@ Takes a user-provided prompt and produces a semantically optimized, graph-of-tho
 
 ```
 /prompt-graph <your prompt>
-/prompt-graph --minimal <your prompt>    # lighter pass (13 active nodes, 4 waves)
-/prompt-graph --verbose <your prompt>    # adds expansion wave (all 20 nodes, 9 waves)
-/prompt-graph --quiet <your prompt>      # orthogonal; combines with any mode
+/prompt-graph --minimal <your prompt>          # lighter pass (13 active nodes, 6 wave-labels)
+/prompt-graph --verbose <your prompt>          # adds expansion wave (all 20 nodes, up to 12 wave-labels)
+/prompt-graph --quiet <your prompt>            # orthogonal; combines with any mode
+/prompt-graph --strict-verify <your prompt>    # orthogonal; agent-separated N16 verifier (Intuition-Verification Partnership); ≤3 spawn budget
 ```
+
+Flags `--quiet` and `--strict-verify` are orthogonal — combine freely with each other and with `--minimal`/`--verbose`. `--minimal` and `--verbose` conflict (pick one).
 
 **Output:** enhanced prompt wrapped in `<prompt>...</prompt>` XML delimited by `---` lines, plus a save prompt (or auto-save in `--quiet` mode) to `~/docs/epiphany/prompts/DD-MM-{slug}.md`.
 
 **Key architectural features:**
 
-- Up to 20 nodes (N01–N20) organized into up to 9 waves
-- One synthesis agent spawn baseline; up to 1 repair spawn (≤2 total — single-attempt cap enforced)
-- Orchestrator-inline role-switched verification (PG3 = N14 ∥ N15 ∥ N16)
-- Conditional back-edge repair (E19: N17 → N13 on FAIL + `completed_repairs = 0`)
+- Up to 20 nodes (N01–N20) organized into up to 10 wave labels (Wave 0 through Wave 9)
+- One synthesis agent spawn baseline (`subagent_type=prompt-architect` with `general-purpose` fallback for portability)
+- SendMessage-first conditional back-edge repair (E19, O12) — default-mode total spawns drop from 2 to 1 in the repair case when SendMessage is available; fresh-spawn fallback retained for portability
+- Typed repair routing (Family A/B/C, O13) at N17 — preservation failures replay N04 inline; fidelity failures replay N09 inline; quality failures go straight to N13. Inline replays cost no spawn budget.
+- Orchestrator-inline role-switched verification (PG3 = N14 ∥ N15 ∥ N16) by default; agent-separated N16 QualityGate under `--strict-verify` (Intuition-Verification Partnership; ≤3 spawn budget)
+- Pre-spawn INVENTORY-coverage check (O11) at Wave 4 — pre-empts a class of preservation failures before the spawn fires
 - Wave-modular architecture: each wave's protocol lives in its own `modules/m-wave*.md` file, loaded via Read at each wave boundary for attention reset
-- Standalone — no MCP runtime dependencies; KB intelligence baked into 3 embedded snippets in `m-wave4-synthesis.md`
+- Standalone — no MCP runtime dependencies; KB intelligence baked into 4 embedded snippets in `m-wave4-synthesis.md` (CoT/ToT/GoT topology; Structured Output; Self-Refine + Intuition-Verification Partnership + TRIZ; Constraint Escape + Precision Forcing + Falsification)
+
+**v1.1.0 changes (2026-04-27):**
+
+- New optimizations: O11 (pre-spawn INVENTORY coverage), O12 (SendMessage-first repair), O13 (typed repair routing).
+- New flag: `--strict-verify` — orthogonal, agent-separated N16, lifts spawn budget to ≤3.
+- N13 spawn now uses `subagent_type="prompt-architect"` with `general-purpose` fallback.
+- New Section 1.5 (Aggregation Policies) makes implicit aggregation policy at N09/N13/N16/N17 explicit per the audit's `fully-exploit-aggregation` definition.
+- KB Snippet 4 added: Constraint Escape, Precision Forcing, Falsification.
+- New Design Notes 16/17/18 documenting deliberate-exclusion rationales for topology asymmetry, mode coverage limits, and capability-overhang stance.
+
+See `docs/audit-report-2026-04-27.md` for the design audit and `docs/multidim-gap-scan-2026-04-27.md` (when added) for the multi-dimensional gap scan that motivated v1.1.0.
 
 See `docs/design-spec.md` Sections 1–2 and Design Notes for the full rationale.
 

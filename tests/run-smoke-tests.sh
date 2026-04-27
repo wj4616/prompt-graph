@@ -62,7 +62,7 @@ run_static() {
 
     # Frontmatter + version
     check_file "frontmatter: name: prompt-graph" "name: prompt-graph" "$SKILL_MD"
-    check_file "frontmatter: version present" "version: 1.0.0" "$SKILL_MD"
+    check_file "frontmatter: version present" "version: 1.1.0" "$SKILL_MD"
     check_file "frontmatter: triggers list" 'triggers: ["/prompt-graph"]' "$SKILL_MD"
 
     # Required sections
@@ -108,6 +108,58 @@ run_static() {
     # Optimizations present
     check_file "O6 repair cap" "completed_repairs" "$SKILL_MD"
     check_file "O9 technique ceiling" "O9" "$SKILL_MD"
+
+    # v1.1 surfaces (static): O11 / O12 / O13, --strict-verify, KB Snippet 4, Section 1.5
+    check_file "O11 INVENTORY coverage check defined" "| O11 |" "$SKILL_MD"
+    check_file "O12 SendMessage-first repair defined" "| O12 |" "$SKILL_MD"
+    check_file "O13 typed repair routing defined" "| O13 |" "$SKILL_MD"
+    check_file "Section 1.5 Aggregation Policies present" "Section 1.5 — Aggregation Policies" "$SKILL_MD"
+    check_file "--strict-verify flag in trigger conditions" "/prompt-graph --strict-verify" "$SKILL_MD"
+    check_file "--strict-verify announce string defined" "Using prompt-graph with --strict-verify" "$SKILL_MD"
+    check_file "Strict-verify advisory text" "Strict-verify mode spawns N16" "$SKILL_MD"
+    check_file "synthesis_agent_id in N17 state" "synthesis_agent_id" "$SKILL_MD"
+    check_file "failure_family classification" "failure_family" "$SKILL_MD"
+    check_file "Failure-family Family-A documented" "Family-A (preservation): failing_checks" "$SKILL_MD"
+    check_file "subagent_type prompt-architect documented" "subagent_type=\"prompt-architect\"" "$SKILL_MD"
+    check_file "Shipped & Roadmap header present" "Shipped in v1.1" "$SKILL_MD"
+    check_file "v1.1 Design Note 16 (topology asymmetry)" "16. **Topology asymmetry" "$SKILL_MD"
+    check_file "v1.1 Design Note 17 (mode coverage)" "17. **Mode coverage" "$SKILL_MD"
+    check_file "v1.1 Design Note 18 (capability-overhang)" "18. **Capability-overhang" "$SKILL_MD"
+
+    # KB Snippet 4 must be present in the synthesis module
+    if grep -qF "### KB Snippet 4" "$SKILL_DIR/modules/m-wave4-synthesis.md"; then
+        printf "  ${G}✓${N} [S] KB Snippet 4 present in m-wave4-synthesis.md\n"; ((PASS_S++)) || true
+    else
+        printf "  ${R}✗${N} [S] KB Snippet 4 MISSING from m-wave4-synthesis.md\n"; ((FAIL_S++)) || true
+    fi
+
+    # O11 pre-spawn checklist item 7 must be in m-wave4-synthesis.md
+    if grep -qF "INVENTORY coverage check (O11" "$SKILL_DIR/modules/m-wave4-synthesis.md"; then
+        printf "  ${G}✓${N} [S] O11 pre-spawn item present in m-wave4-synthesis.md\n"; ((PASS_S++)) || true
+    else
+        printf "  ${R}✗${N} [S] O11 pre-spawn item MISSING from m-wave4-synthesis.md\n"; ((FAIL_S++)) || true
+    fi
+
+    # m-wave6-repair-router.md must define SendMessage-First protocol
+    if grep -qF "SendMessage-First Repair Protocol" "$SKILL_DIR/modules/m-wave6-repair-router.md"; then
+        printf "  ${G}✓${N} [S] O12 SendMessage protocol present in m-wave6-repair-router.md\n"; ((PASS_S++)) || true
+    else
+        printf "  ${R}✗${N} [S] O12 SendMessage protocol MISSING from m-wave6-repair-router.md\n"; ((FAIL_S++)) || true
+    fi
+
+    # m-wave5-verification.md must define agent-separated path for --strict-verify
+    if grep -qF "Agent-separated path" "$SKILL_DIR/modules/m-wave5-verification.md"; then
+        printf "  ${G}✓${N} [S] N16 agent-separated path present in m-wave5-verification.md\n"; ((PASS_S++)) || true
+    else
+        printf "  ${R}✗${N} [S] N16 agent-separated path MISSING from m-wave5-verification.md\n"; ((FAIL_S++)) || true
+    fi
+
+    # m-wave0-1-input.md must register --strict-verify in flag detection
+    if grep -qF "set strict_verify flag" "$SKILL_DIR/modules/m-wave0-1-input.md"; then
+        printf "  ${G}✓${N} [S] --strict-verify flag detection present in m-wave0-1-input.md\n"; ((PASS_S++)) || true
+    else
+        printf "  ${R}✗${N} [S] --strict-verify flag detection MISSING from m-wave0-1-input.md\n"; ((FAIL_S++)) || true
+    fi
 
     # FAIL-path message templates (Tests G, O, P structural)
     check_file "Test G: FAIL-capped signal defined" "VERIFICATION: FAIL — capped at 1 repair, fallback output" "$SKILL_MD"
@@ -190,16 +242,19 @@ run_essential_runtime() {
 
     # Test K — channel marker abort (confirm the abort message is defined in SKILL.md)
     check_file "Test K: channel abort message defined" "Wave 4 pre-spawn abort: channel markers missing" "$SKILL_MD" 0 essential
+    check_file "Test L (static): content freeze signal defined" "[PROMPT-GRAPH] Input contains executable patterns" "$SKILL_MD" 0 essential
 
     # Test F — unknown flag prose context (soft advisory)
     out=$(timeout $TIMEOUT claude --dangerously-skip-permissions "/prompt-graph --describe what a function does" 2>&1 || true)
     check "Test F: soft advisory shown" "Token '--describe' resembles a flag" "$out"
 
-    # Test L — Type D advisory
+    # Test L — Type D content freeze signal
     local type_d_fixture
     type_d_fixture=$(printf -- '---\nname: test-skill\ndescription: test\ntriggers: ["/test"]\n---\n# Test Skill\n\nBody content.')
     out=$(timeout $TIMEOUT claude --dangerously-skip-permissions "/prompt-graph $type_d_fixture" 2>&1 || true)
-    check "Test L: Type D advisory first line" "appears to describe an executable workflow" "$out"
+    check "Test L: Type D freeze signal emitted" "[PROMPT-GRAPH] Input contains executable patterns" "$out"
+    check "Test L: Type D freeze precedes announce" "[PROMPT-GRAPH] Input contains executable patterns" "$(echo "$out" | head -3)"
+    check "Test L: enhancement proceeds after freeze" "=== ANALYST OUTPUT BEGIN ===" "$out"
 }
 
 run_protocol() {
