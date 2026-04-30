@@ -1,82 +1,78 @@
-# Wave 2 Module — Structured Analysis
+# Wave 2 Module — Structured Analysis (v2: 4 blocks collapsed to 2)
 
-**Nodes:** N05 StructureAnalyzer, N06 ConstraintAuditor, N07 TechniqueGapAnalyst, N08 WeaknessDetector
-**Active modes:** normal, verbose only (skipped in minimal)
-**Marker contract:** Continues ANALYST OUTPUT block opened in Wave 1. Closes `=== ANALYST OUTPUT END ===` after N08's WEAKNESSES block.
+**Nodes:** N05 StructureAnalyzer + N06 ConstraintAuditor (merged), N07 TechniqueGapAnalyst + N08 WeaknessDetector (merged)
+**Active modes:** normal, deep, verbose, deep-verbose only (skipped in minimal)
+**Marker contract:** Continues ANALYST OUTPUT block opened in Wave 1. Closes `=== ANALYST OUTPUT END ===` after the merged N07+N08 block's WEAKNESSES sub-section.
 **Role:** Structured prompt analyst (continued from Wave 1's N03/N04 role declaration).
 
-**Block header emission contract (deterministic):** Each analysis block in this wave MUST open with a line-starting markdown H3 header using the exact label, no decoration:
+**v2 change — 4 blocks collapsed to 2 (saves 2 inferences):**
+- Wave 2a: N05+N06 merged → single role-switched block producing both `### STRUCTURE + CONSTRAINTS` sub-sections
+- Wave 2b: N07+N08 merged → single role-switched block producing both `### TECHNIQUE GAPS + WEAKNESSES` sub-sections
 
-- N05 emits `### STRUCTURE` as the first line of its block.
-- N06 emits `### CONSTRAINTS` as the first line of its block.
-- N07 emits `### TECHNIQUES` as the first line of its block.
-- N08 emits `### WEAKNESSES` as the first line of its block.
+## Block Header Emission Contract (v2 — merged)
 
-These headers are the smoke-test grep targets for Test B (negative-assertion: must be absent in minimal mode) and Test R (GoT controller path selection). Do NOT vary the casing, decorate with bold/italics, or add suffixes like `(N05)`. The header line is the contract; everything below it is the block body.
+Each merged block opens with a single markdown H3 header:
 
-## N05 StructureAnalyzer
+- Merged N05+N06 block emits `### STRUCTURE + CONSTRAINTS` as the first line, then produces both sub-sections within a single inference.
+- Merged N07+N08 block emits `### TECHNIQUE GAPS + WEAKNESSES` as the first line, then produces both sub-sections within a single inference.
 
-**Input:** normalized_input (from N02 via E00a).
+These headers are the smoke-test grep targets for Test B (negative-assertion: must be absent in minimal mode) and Test R (GoT controller path selection). Do NOT vary the casing, decorate with bold/italics, or add suffixes. The header line is the contract; everything below it is the block body.
+
+## Merged N05+N06 — Structure + Constraints Analysis
+
+**Input:** normalized_input (from N02 via E00a + E00b — both edges now feed the single merged block).
 
 **Protocol:**
 
-1. Read the normalized_input and identify its current organizational structure.
-2. Produce a STRUCTURE block containing:
+1. Read the normalized_input and identify both organizational structure and all constraints in a single analysis pass.
+2. Produce a combined STRUCTURE + CONSTRAINTS block containing:
    - **Current organization:** How the prompt is currently structured (paragraphs, sections, bullets, etc.)
    - **Missing structural elements:** What structural components are absent (section headers, constraints block, output format spec, edge case handling, etc.)
    - **Structural coherence assessment:** How well the existing structure supports the prompt's stated intent
-
-**Output:** STRUCTURE block (text).
-
-## N06 ConstraintAuditor
-
-**Input:** normalized_input (from N02 via E00b).
-
-**Protocol:**
-
-1. Read the normalized_input and identify all constraints.
-2. Produce a CONSTRAINTS block containing:
    - **Explicit constraints:** Directly stated requirements, limitations, and rules
    - **Implicit constraints:** Constraints implied by the intent, context, or domain but not directly stated
    - **Conflict surface:** Areas where constraints may contradict or create tension
+   - **Cross-reference note:** Constraints detected in the text that inform structural observations (and vice versa) should be noted.
 
-**Output:** CONSTRAINTS block (text).
+**Output:** Combined STRUCTURE + CONSTRAINTS block (text, single inference covering both former N05 and N06 dimensions).
 
-## N07 TechniqueGapAnalyst
+## Merged N07+N08 — Technique Gaps + Weaknesses
 
-**Input:** `{normalized_input, INTENT}` (from N02 via E00c and N03 via E03).
-
-**Protocol:**
-
-1. Read the normalized_input with the INTENT block as context.
-2. For each of the 13 techniques (T1–T13), assess:
-   - **Already present:** Is this technique already partially or fully applied in the input?
-   - **Needed:** Would applying this technique meaningfully improve the prompt for its stated intent?
-   - **Impact:** If needed, estimate the expected improvement (high/medium/low)
-3. Produce a TECHNIQUES block listing gap analysis results in tabular form.
-
-**Output:** TECHNIQUES block (T1–T13 gap analysis).
-
-## N08 WeaknessDetector
-
-**Input:** `{normalized_input, INTENT, STRUCTURE, CONSTRAINTS}` (from N02 via E00d, N03 via E03, N05 via E06, N06 via E07).
+**Input:** `{normalized_input, INTENT, STRUCTURE, CONSTRAINTS}` (from N02 via E00c+E00d, N03 via E03, and the merged N05+N06 output via E06+E07).
 
 **Protocol:**
 
-1. Synthesize findings from the input, INTENT, STRUCTURE, and CONSTRAINTS.
-2. Identify specific weaknesses — numbered W1…Wn, each with:
-   - **Weakness description:** What the weakness is
-   - **Impact score:** high / medium / low
-   - **Causal explanation:** WHY this is a weakness and how it degrades prompt effectiveness
-3. Format example: `"Weakness: vague success criteria [high] — causal: without measurable criteria, the synthesizer cannot determine when enhancement is complete, leading to under- or over-specified output."`
-4. Step self-check (non-blocking annotations):
-   - INTENT specificity: is the INTENT block specific enough to guide enhancement?
-   - WEAKNESSES causal explanation: does each weakness include a causal mechanism?
-   - INVENTORY completeness: are there items in the input not yet captured in INVENTORY?
+1. Read the normalized_input with the INTENT block, STRUCTURE, and CONSTRAINTS as context.
+2. Produce a combined TECHNIQUE GAPS + WEAKNESSES block containing:
 
-**Output:** WEAKNESSES block (numbered, scored, with causal explanations).
+   **Technique Gap Analysis:**
+   - For each of the 13 techniques (T1–T13), assess:
+     - **Already present:** Is this technique already partially or fully applied?
+     - **Needed:** Would applying this technique meaningfully improve the prompt?
+     - **Impact:** If needed, estimate expected improvement (high/medium/low)
+   - **Streamlined assessment:** Skip techniques where the gap is clearly absent (no need for detailed analysis when a technique is obviously irrelevant). Focus depth on techniques where the gap analysis is non-obvious.
+   - Present results in tabular form.
 
-**Marker contract:** `=== ANALYST OUTPUT END ===` closes after this block in normal/verbose.
+   **KB query (deep, verbose, deep-verbose only — optional, non-blocking):**
+   - Fire query to `mcp__dify-thought-kb__ToT-GoT-Cot-KB-retrieval` with a summary of input characteristics: "topology recommendation for [intent summary]"
+   - Pipeline does NOT wait on KB response. If response arrives before the block is emitted, incorporate topology-grounded recommendations into the technique gap analysis (e.g., "GoT topology recommended — T6 structured reasoning injection is higher-impact than static T1-T13 analysis would suggest").
+   - On no response / failure: proceed with static T1-T13 analysis. Tier 1 fallback.
+
+   **Weakness Detection:**
+   - Synthesize findings from the input, INTENT, STRUCTURE, and CONSTRAINTS.
+   - Identify specific weaknesses — numbered W1…Wn, each with:
+     - **Weakness description:** What the weakness is
+     - **Impact score:** high / medium / low
+     - **Causal explanation:** WHY this is a weakness and how it degrades prompt effectiveness
+   - Format example: `"Weakness: vague success criteria [high] — causal: without measurable criteria, the synthesizer cannot determine when enhancement is complete, leading to under- or over-specified output."`
+   - **Step self-check (non-blocking annotations):**
+     - INTENT specificity: is the INTENT block specific enough to guide enhancement?
+     - WEAKNESSES causal explanation: does each weakness include a causal mechanism?
+     - INVENTORY completeness: are there items in the input not yet captured in INVENTORY?
+
+**Output:** Combined TECHNIQUE GAPS + WEAKNESSES block (text, single inference covering both former N07 and N08 dimensions).
+
+**Marker contract:** `=== ANALYST OUTPUT END ===` closes after this block.
 
 ## T1–T13 Reference Table (Authoritative for prompt-graph)
 

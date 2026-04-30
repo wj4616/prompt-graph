@@ -3,9 +3,9 @@
 **Nodes:** N12 CoherenceGate (inline, orchestrator), N13 SynthesisAgent (agent-spawn)
 **Marker contracts:** N12 output appends to still-open IDEATION OUTPUT block; `=== IDEATION OUTPUT END ===` closes after N12 advisory (or after N11 in minimal mode — N12 skipped). Then `=== SYNTHESIS RETURN BEGIN/END ===` wraps N13's return.
 
-## N12 CoherenceGate (normal/verbose only)
+## N12 CoherenceGate
 
-**Active modes:** normal, verbose only. Skipped entirely in minimal mode.
+**Active modes:** normal, deep, verbose, deep-verbose. Skipped entirely in minimal mode.
 
 **Input:** `{WEAKNESSES, resolved_contracts}`
 
@@ -25,19 +25,21 @@
 
 ## Pre-Spawn Checklist
 
-Before spawning N13, verify 6 items. Abort with user-facing error message if any fails. Do NOT spawn N13 on abort.
+Before spawning N13, verify 8 items (items 1-7 are universal; item 8 fires only when N10 ran in deep/deep-verbose). Abort with user-facing error message if any fails. Do NOT spawn N13 on abort.
 
-1. **Analysis blocks present:** INTENT block AND INVENTORY YAML both present (required in all modes). In normal/verbose: STRUCTURE + CONSTRAINTS + TECHNIQUES + WEAKNESSES blocks also present.
+1. **Analysis blocks present:** INTENT block AND INVENTORY YAML both present (required in all modes). In normal/deep/verbose/deep-verbose: STRUCTURE + CONSTRAINTS + TECHNIQUES + WEAKNESSES blocks also present.
 2. **INVENTORY valid:** Syntactically parseable YAML containing all 20 required keys (Tier 1–4), even if all values are `[]`.
 3. **Contract list non-empty:** resolved_contracts from N11 has at least 1 active contract (non-empty after conflict pruning).
 4. **Channel markers present and non-empty:** `=== ANALYST OUTPUT BEGIN ===` / `=== ANALYST OUTPUT END ===` present; `=== IDEATION OUTPUT BEGIN ===` / `=== IDEATION OUTPUT END ===` present. Abort message on failure: "Wave 4 pre-spawn abort: channel markers missing. Cannot assemble synthesis spawn prompt. Re-run from Wave 1."
 5. **Spawn prompt assembles without truncation:** After extracting channel content, confirm all four required sections are present in the assembled prompt — NORMALIZED INPUT, ANALYSIS, CONTRACTS, and the module's instruction template.
-6. **Coherence gate verification (normal/verbose only — skipped in minimal per O5 advisory-only framing):** For each high-impact weakness in WEAKNESSES, verify at least one mapped contract (a) references that weakness AND (b) uses a technique+action plausibly addressing the weakness's causal explanation. Presence-only mapping does NOT satisfy. On failure: emit advisory "Coherence warning: high-impact weakness '[X]' has no adequately mapped contract. Proceeding — synthesis quality for this weakness may be reduced." Advisory is NON-BLOCKING — proceed to spawn.
+6. **Coherence gate verification (normal/deep/verbose/deep-verbose — skipped in minimal per O5 advisory-only framing):** For each high-impact weakness in WEAKNESSES, verify at least one mapped contract (a) references that weakness AND (b) uses a technique+action plausibly addressing the weakness's causal explanation. Presence-only mapping does NOT satisfy. On failure: emit advisory "Coherence warning: high-impact weakness '[X]' has no adequately mapped contract. Proceeding — synthesis quality for this weakness may be reduced." Advisory is NON-BLOCKING — proceed to spawn.
 
 7. **INVENTORY coverage check (O11 — pre-spawn preservation guard):** After assembling the spawn prompt, verify that every non-empty INVENTORY key is referenced at least once in the assembled prompt body (`=== NORMALIZED INPUT ===`, `=== ANALYSIS ===`, `=== CONTRACTS ===`, or the instruction template). For each non-empty key:
    - If at least one item from the key is grep-findable in the assembled prompt → PASS for that key.
    - If NO item from the key appears in the assembled prompt → append the missing items to a synthesis-internal `=== PRESERVE-VERBATIM RIDER ===` block at the end of the assembled prompt, with a one-line note: `"The following INVENTORY items must appear verbatim in your output XML: [list]. They were not mentioned in the contracts above but are part of the binding INVENTORY contract from N04."`
    This is **non-blocking** — the rider is appended automatically; spawn proceeds. Rationale: pre-empts a class of preservation failures (6a) that would otherwise burn the repair spawn slot. Cost: a dozen lines of grep + an optional rider; saves a full N13 repair on the failure path.
+
+8. **Anti-conformity contract validation (deep/deep-verbose only — skipped in minimal/normal/verbose):** If N10 ran (depth = deep), verify that every anti-conformity contract in resolved_contracts (technique = `"anti-conformity:[name]"`) has a non-empty rationale containing the exact substring `"Primary-pass exclusion reason:"`. Any anti-conformity contract missing this reason is malformed — N10's protocol guarantees its presence under normal operation. On violation: emit advisory `"Anti-conformity contract [name] missing primary-pass exclusion reason — contract may have been corrupted. Proceeding, but quality may degrade for that contract."` Advisory is NON-BLOCKING — proceed to spawn.
 
 ## O7 — Token Budget Prioritization
 
@@ -129,6 +131,29 @@ TRIZ (creative problem-solving methodology) reframes conflict resolution as: ide
 
 ---
 
+### KB Snippet 5 — Multi-Strategy Synthesis Selection (v2 — deep/verbose/deep-verbose modes):
+
+Strategy-to-input matching heuristic. Select synthesis strategy by input characteristics:
+- **MoA-layered** (N28): input has interdependent constraints, cross-section coherence matters, multiple INVENTORY categories interact. Application: when contracts span >3 target sections, MoA cross-review prevents inconsistent cross-references.
+- **AutoTRIZ** (N29): input has contradictory or tensioned constraints, tradeoffs need explicit resolution. Application: when conflict_log from N11 has entries, TRIZ contradiction mapping resolves rather than picks winners.
+- **Constitutional** (N30): input is quality/safety/alignment-sensitive, explicit principles improve output. Application: positively-framed principles get +27% better adherence than negative framing (KB research).
+- **CreativeDC** (N31): input is open-ended, exploratory, creative — benefits from structural exploration before content execution. Application: diverge on structure first (3 outlines), then converge on best approach.
+- **Cognitive-Amplified** (N32): input is high-stakes, complex enough to benefit from genius-mind cognitive trait overlay. Application: assign trait dynamically from KB; Precision Forcing as universal fallback.
+- **Default/Ensemble** (fallback): balanced T1-T13 enhancement without strategy bias.
+
+### KB Snippet 6 — Genius-Mind Cognitive Trait Application Protocol (v2 — deep/deep-verbose modes):
+
+19 traits mapped to pipeline phases (analysis/ideation/synthesis), with concrete structural artifact requirement per trait:
+- **Precision Forcing** → convert every vague marker in INTENT into measurable criteria → `<verification>` block with checkable items
+- **Constraint Escape** → surface implicit assumptions, propose relaxed-constraint variants → `<edge_cases>` with "Relaxed constraint: ..." annotations
+- **Falsification** → actively construct edge cases that defeat each contract guard → per-contract adversarial test in `<verification>`
+- **Systems Thinking** → identify and surface inter-constraint dependencies → dependency graph as numbered list in `<constraints>`
+- **Multi-Perspective** → analyze from 3+ AI-consumer perspectives, capture variance → multi-perspective annotations in `<context>`
+- **Intuition-Verification** → strict separation: draft (intuition) then verify (verification) → separate `<verification>` block with explicit pass/fail per criterion
+Application: N27 assigns the trait matching the input's cognitive demands. N13 (deep mode) or N32 (verbose/deep-verbose) applies the assigned trait as a lens — "think through this trait" framing, not "do this trait" instruction.
+
+---
+
 ### S1–S4 Synthesis Protocol
 
 **S1 (INVENTORY placement):** Place every INVENTORY item into the semantically appropriate XML section per this mapping:
@@ -180,6 +205,70 @@ The orchestrator fills this section with extracted channel content before passin
 Execute S1–S4 using the content in these three sections.
 
 ---
+
+## Deep Mode — KB-Augmented Spawn Prompt (deep, deep-verbose)
+
+When depth = deep (including deep-verbose), the N13 spawn prompt is augmented with:
+
+1. **Anti-conformity contracts active:** N10 ran (depth = deep), so resolved_contracts includes anti-conformity entries with technique = `"anti-conformity:[name]"` and rationales containing `"Primary-pass exclusion reason:"`. These contracts are NOT T1–T13 — they represent lateral thinking additions that a sequential pass would miss. N13's S2 execution treats them as same-priority peers to primary contracts (apply after all same-priority primary contracts, per standard S2 ordering).
+
+2. **KB Snippets 5–6 active:** The spawn prompt already embeds KB Snippets 1–6 (Snippets 5–6 are present in the module body above S1–S4). In deep mode, explicitly instruct N13 to apply Snippet 5's strategy-matching heuristic and Snippet 6's cognitive-trait protocol as augmentation lenses during S2 contract execution.
+
+3. **Spawn prompt augmentation block** — the orchestrator appends this block to the spawn prompt at the end of the assembled content (immediately after the `=== CONTRACTS END ===` marker — i.e., after all three assembled-content sections NORMALIZED INPUT → ANALYSIS → CONTRACTS):
+
+```
+=== DEEP-MODE AUGMENTATION (ACTIVE) ===
+You are in deep mode — maximum single-pass cognitive amplification.
+
+Additional instructions beyond the standard S1–S4 protocol:
+
+1. KB Snippet 5 (Multi-Strategy Synthesis Selection): before executing contracts in S2,
+   classify the input per the strategy-matching heuristic. Apply the matching strategy's
+   cognitive frame during contract execution even though you are a single synthesis agent
+   (not the multi-path layer). The strategy lens biases HOW you apply each contract.
+
+2. KB Snippet 6 (Genius-Mind Cognitive Trait Application Protocol): assign the trait
+   matching the input's primary cognitive demand. Apply as a lens — "think through this
+   trait" framing, not "do this trait" instruction. The trait's structural artifact
+   requirement (e.g., Precision Forcing → measurable criteria in <verification>) is a
+   HARD OUTPUT REQUIREMENT — the artifact MUST appear in the output XML.
+
+3. Anti-conformity contracts: the resolved_contracts list includes contracts with
+   technique="anti-conformity:[name]" and rationale containing "Primary-pass exclusion
+   reason: [why a sequential T1–T13 pass misses this]". These contracts represent
+   enhancement opportunities discovered via lateral thinking (N10 with novelty gate O3).
+   Apply them per standard S2 priority ordering — they are same-priority peers to
+   primary contracts, not second-class additions.
+
+4. Cognitive depth: deep mode contracts were generated from full WEAKNESSES (scored
+   high/medium/low) + full TECHNIQUES gap analysis + anti-conformity pass. The contract
+   set is more comprehensive than normal mode. Do NOT simplify or skip contracts to
+   reduce output size — the consumer requested maximum cognitive amplification.
+=== DEEP-MODE AUGMENTATION END ===
+```
+
+4. **O7 budget note for deep mode:** The deep-mode augmentation block adds ~250 tokens. If the assembled spawn prompt is at the ~15k O7 threshold, truncation priority is: (1) analysis blocks, (2) low-priority contracts, (3) deep-mode augmentation block (never truncate INVENTORY or normalized input).
+
+## Verbose Mode — Handoff Note (verbose, deep-verbose)
+
+When passes = verbose (including deep-verbose), after N13 returns and the `=== SYNTHESIS RETURN END ===` marker closes:
+
+**Orchestrator emits handoff note (non-blocking, informational):**
+
+```
+--- First-pass baseline captured. Handing off to Wave 4.5 multi-path synthesis layer. ---
+```
+
+This note appears between `=== SYNTHESIS RETURN END ===` and `=== VERIFICATION REPORTS BEGIN ===` (Wave 5). It signals that:
+
+- N13's output is the first-pass baseline — retained for comparison and as the revert target in Wave 9 if expansion fails.
+- N27 KBBranchRouter (Wave 4.5a) fires next to determine branch width and strategy selection.
+- N28–N32 multi-path synthesis (Wave 4.5) runs parallel spawns using the strategies selected by N27.
+- N33 MetaAggregator (Wave 4.5) merges multi-path outputs into a single aggregated XML.
+- Wave 5 verification runs on the aggregated output, not N13's first-pass baseline.
+- If multi-path aggregation fails or degrades quality, Wave 9 revert path falls back to N13's first-pass baseline.
+
+In non-verbose modes (minimal, normal, deep), N13's output goes directly to Wave 5 verification. The handoff note is absent.
 
 ## Agent-Signal Informational Only
 

@@ -7,11 +7,11 @@
 
 ## N09 PrimaryContractGen
 
-**Input (normal/verbose):** `{INTENT, STRUCTURE, CONSTRAINTS, TECHNIQUES, WEAKNESSES}` from analyst output.
+**Input (normal/deep/verbose/deep-verbose):** `{INTENT, STRUCTURE, CONSTRAINTS, TECHNIQUES, WEAKNESSES}` from analyst output.
 
 **Input (minimal):** `{normalized_input, INTENT}` — no WEAKNESSES or TECHNIQUES blocks exist.
 
-**Protocol (normal/verbose):**
+**Protocol (normal/deep/verbose/deep-verbose):**
 
 1. Iterate through each weakness in WEAKNESSES (ordered high → medium → low impact).
 2. For each weakness, determine if a technique from TECHNIQUES gap analysis can address it.
@@ -32,7 +32,7 @@
 
 ## N10 AntiConformityPass
 
-**Active modes:** normal, verbose only (skipped in minimal).
+**Active modes:** deep, deep-verbose only (skipped in minimal, normal, and plain verbose — verbose's first pass uses normal-mode contracts; only the deep depth flag activates anti-conformity). Anti-conformity with novelty gate O3 is a premium cognitive feature — it costs an extra inference and is gated behind the depth threshold. Normal/verbose mode gets standard T1-T13 sequential contracts; deep/deep-verbose get the lateral-thinking pass.
 
 **Input:** `{normalized_input, primary_contracts}`
 
@@ -53,8 +53,8 @@
 
 ## N11 ContractConflictResolver
 
-**Input (normal/verbose):** combined_contracts from N10.
-**Input (minimal):** primary_contracts from N09 (N10 was skipped).
+**Input (deep/deep-verbose):** combined_contracts from N10.
+**Input (minimal/normal/verbose):** primary_contracts from N09 (N10 was skipped).
 
 **Protocol (O4 — same-slot conflict pruning):**
 

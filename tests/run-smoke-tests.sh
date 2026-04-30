@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prompt-graph smoke test runner — covers SKILL.md Tests A-R
+# prompt-graph smoke test runner — covers SKILL.md Tests A-V (v2: S/T/U manual-only protocol notes)
 #
 # Usage:
 #   ./run-smoke-tests.sh              # essential: static + essential runtime (default)
@@ -62,7 +62,7 @@ run_static() {
 
     # Frontmatter + version
     check_file "frontmatter: name: prompt-graph" "name: prompt-graph" "$SKILL_MD"
-    check_file "frontmatter: version present" "version: 1.1.0" "$SKILL_MD"
+    check_file "frontmatter: version present" "version: 2.0.0" "$SKILL_MD"
     check_file "frontmatter: triggers list" 'triggers: ["/prompt-graph"]' "$SKILL_MD"
 
     # Required sections
@@ -76,7 +76,7 @@ run_static() {
     check_file "Section 8 Smoke Test Checklist header" "## Section 8 — Smoke Test Checklist" "$SKILL_MD"
 
     # Modules exist
-    for mod in m-wave0-1-input m-wave2-analysis m-wave3-contracts m-wave4-synthesis m-wave5-verification m-wave6-repair-router m-wave7-9-verbose-expansion; do
+    for mod in m-wave0-1-input m-wave2-analysis m-wave3-contracts m-wave4-synthesis m-wave5-verification m-wave6-repair-router m-wave7-9-verbose-expansion m-wave4.5a-kb-branch m-wave4.5b-multi-synthesis m-wave4.5-aggregation m-wave4.5-anti-fragility; do
         if [[ -f "$SKILL_DIR/modules/$mod.md" ]]; then
             printf "  ${G}✓${N} [S] module file exists: $mod.md\n"; ((PASS_S++)) || true
         else
@@ -88,9 +88,9 @@ run_static() {
     check_file "Section 3 mentions minimal-mode node list" "(13 nodes)" "$SKILL_MD"
 
     # Test Q structural check: 3 sub-block markers defined
-    check_file "VERIFICATION REPORTS sub-block: PRESERVATION" "--- PRESERVATION (6a-6e) ---" "$SKILL_MD"
+    check_file "VERIFICATION REPORTS sub-block: PRESERVATION" "--- PRESERVATION (6a-6b) ---" "$SKILL_MD"
     check_file "VERIFICATION REPORTS sub-block: FIDELITY" "--- FIDELITY (6f) ---" "$SKILL_MD"
-    check_file "VERIFICATION REPORTS sub-block: QUALITY" "--- QUALITY (6g-6l) ---" "$SKILL_MD"
+    check_file "VERIFICATION REPORTS sub-block: QUALITY" "--- QUALITY (6h-6l) ---" "$SKILL_MD"
 
     # Hard gates present
     check_file "Hard Gate 1 SUFFICIENCY" "SUFFICIENCY" "$SKILL_MD"
@@ -175,6 +175,60 @@ run_static() {
     check_file "Cross-Wave: INVENTORY verbatim contract" "INVENTORY verbatim contract" "$SKILL_MD"
     check_file "Cross-Wave: channel marker discipline" "Channel marker discipline" "$SKILL_MD"
     check_file "Cross-Wave: repair signal schema binding" "Repair signal schema binding" "$SKILL_MD"
+
+    # --- v2 structural checks ---
+    # New marker pairs (Tests S, T, U structural)
+    check_file "KB BRANCH PLAN marker pair defined" "=== KB BRANCH PLAN BEGIN ===" "$SKILL_MD"
+    check_file "META AGGREGATION marker pair defined" "=== META AGGREGATION BEGIN ===" "$SKILL_MD"
+    check_file "ANTI-FRAGILITY REPORT marker pair defined" "=== ANTI-FRAGILITY REPORT BEGIN ===" "$SKILL_MD"
+
+    # Deep mode announce strings
+    check_file "Deep mode announce defined" "(deep mode) to enhance" "$SKILL_MD"
+    check_file "Deep+verbose announce defined" "(deep + verbose mode) to enhance" "$SKILL_MD"
+
+    # --minimal --deep conflict halt message
+    check_file "Test V: minimal+deep conflict message defined" "--minimal and --deep conflict." "$SKILL_MD"
+
+    # O14 optimization (budget-conscious downgrade)
+    check_file "O14 budget downgrade defined" "O14" "$SKILL_MD"
+
+    # New appendices D/E/F headers
+    check_file "Appendix D KB Integration header" "## Appendix D — KB Integration Protocol" "$SKILL_MD"
+    check_file "Appendix E Multi-Path Synthesis header" "## Appendix E — Multi-Path Synthesis" "$SKILL_MD"
+    check_file "Appendix F Verification Cross-Reference header" "## Appendix F — Verification Check Cross-Reference" "$SKILL_MD"
+
+    # Design Notes 19-22 present
+    check_file "Design Note 19 (3-tier KB integration)" "19. **3-tier KB integration" "$SKILL_MD"
+    check_file "Design Note 20 (GoT double-tree)" "20. **Multi-path synthesis is the GoT double-tree" "$SKILL_MD"
+    check_file "Design Note 21 (anti-fragility)" "21. **Anti-fragility is adversarial self-testing" "$SKILL_MD"
+    check_file "Design Note 22 (7-check consolidation)" "22. **7-check consolidation" "$SKILL_MD"
+
+    # Edge count updated for v2
+    check_file "Edge count updated (49 edges)" "49 edges" "$SKILL_MD"
+
+    # Section 3 5-mode table — deep and deep-verbose columns
+    check_file "Section 3 deep mode column present" "**deep** | \`--deep\`" "$SKILL_MD"
+    check_file "Section 3 deep-verbose column present" "**deep-verbose** | \`--deep --verbose\`" "$SKILL_MD"
+
+    # PG5 parallel group defined
+    check_file "PG5 parallel group defined" "PG5" "$SKILL_MD"
+
+    # Section 7 Waves 4.5a-d narrative present
+    check_file "Wave 4.5a KB Branch Routing narrative" "**Wave 4.5a — KB Branch Routing" "$SKILL_MD"
+    check_file "Wave 4.5b Multi-Path Parallel Synthesis narrative" "**Wave 4.5b — Multi-Path Parallel Synthesis" "$SKILL_MD"
+    check_file "Wave 4.5c Meta-Aggregation narrative" "**Wave 4.5c — Meta-Aggregation" "$SKILL_MD"
+    check_file "Wave 4.5d Anti-Fragility narrative" "**Wave 4.5d — Anti-Fragility Hardening" "$SKILL_MD"
+
+    # Deep mode N10 activation in SKILL.md (moved from normal)
+    check_file "N10 active in deep mode" "AntiConformityPass | generator" "$SKILL_MD" 0 static
+    # Verify N10's mode column says deep (only deep + deep-verbose; not verbose)
+    check_file "N10 mode column includes deep" "| deep, deep-verbose |" "$SKILL_MD"
+    # Verify N10 is NOT listed as active in plain verbose
+    check_file "N10 NOT listed in plain verbose" "AntiConformityPass | generator | \`{normalized_input, primary_contracts}\` | combined_contracts list (primary + anti-conformity additions after novelty gate O3) | deep, verbose, deep-verbose |" "$SKILL_MD" 1
+
+    # Section 6 deep path GoT Controller
+    check_file "Section 6 deep path defined" "**Deep path** — triggered by" "$SKILL_MD"
+    check_file "Section 6 deep-verbose path defined" "**Deep-verbose path** — triggered by" "$SKILL_MD"
 }
 
 run_essential_halt() {
@@ -183,17 +237,22 @@ run_essential_halt() {
     # Test E — deferred flag --spec
     local out
     out=$(timeout $TIMEOUT claude --dangerously-skip-permissions "/prompt-graph --spec Write a function." 2>&1 || true)
-    check "Test E: --spec deferred halt message" "The \`--spec\` flag is not yet supported in prompt-graph v1" "$out"
+    check "Test E: --spec deferred halt message" "The \`--spec\` flag is not yet supported in prompt-graph v2" "$out"
     check "Test E: does NOT proceed to analysis" "=== ANALYST OUTPUT BEGIN ===" "$out" 1
 
     # Test E companion — deferred flag --plan
     out=$(timeout $TIMEOUT claude --dangerously-skip-permissions "/prompt-graph --plan Write a function." 2>&1 || true)
-    check "Test E: --plan deferred halt message" "The \`--plan\` flag is not yet supported in prompt-graph v1" "$out"
+    check "Test E: --plan deferred halt message" "The \`--plan\` flag is not yet supported in prompt-graph v2" "$out"
     check "Test E: --plan does NOT proceed to analysis" "=== ANALYST OUTPUT BEGIN ===" "$out" 1
 
     # Test J — conflicting --minimal --verbose halt
     out=$(timeout $TIMEOUT claude --dangerously-skip-permissions "/prompt-graph --minimal --verbose Write a function." 2>&1 || true)
     check "Test J: flag conflict halt" "--minimal and --verbose conflict" "$out"
+
+    # Test V — conflicting --minimal --deep halt (v2)
+    out=$(timeout $TIMEOUT claude --dangerously-skip-permissions "/prompt-graph --minimal --deep Write a function." 2>&1 || true)
+    check "Test V: minimal+deep flag conflict halt" "--minimal and --deep conflict" "$out"
+    check "Test V: does NOT proceed to analysis" "=== ANALYST OUTPUT BEGIN ===" "$out" 1
 }
 
 run_essential_runtime() {
@@ -217,22 +276,20 @@ run_essential_runtime() {
     # Test Q — three sub-blocks in VERIFICATION REPORTS (ordered)
     local v_block
     v_block=$(echo "$out" | awk '/=== VERIFICATION REPORTS BEGIN ===/,/=== VERIFICATION REPORTS END ===/')
-    check "Test Q: PRESERVATION sub-block first" "--- PRESERVATION (6a-6e) ---" "$v_block"
+    check "Test Q: PRESERVATION sub-block first" "--- PRESERVATION (6a-6b) ---" "$v_block"
     check "Test Q: FIDELITY sub-block second" "--- FIDELITY (6f) ---" "$v_block"
-    check "Test Q: QUALITY sub-block third" "--- QUALITY (6g-6l) ---" "$v_block"
+    check "Test Q: QUALITY sub-block third" "--- QUALITY (6h-6l) ---" "$v_block"
 
     # Test B — Minimal mode: no analysis blocks (negative assertions)
     out=$(timeout $TIMEOUT claude --dangerously-skip-permissions "/prompt-graph --minimal Write a function." 2>&1 || true)
     check "Test B: minimal mode announce" "Using prompt-graph (minimal mode) to enhance this prompt." "$out"
     check "Test B: minimal advisory line" "Analysis limited to intent and inventory" "$out"
-    check "Test B: STRUCTURE block absent" "STRUCTURE block" "$out" 1
-    check "Test B: CONSTRAINTS block absent" "CONSTRAINTS block" "$out" 1
-    check "Test B: TECHNIQUES block absent" "TECHNIQUES block" "$out" 1
-    check "Test B: WEAKNESSES block absent" "WEAKNESSES block" "$out" 1
+    check "Test B: STRUCTURE + CONSTRAINTS block absent" "### STRUCTURE + CONSTRAINTS" "$out" 1
+    check "Test B: TECHNIQUE GAPS + WEAKNESSES block absent" "### TECHNIQUE GAPS + WEAKNESSES" "$out" 1
     check "Test B: EXPANSION OUTPUT absent (minimal mode)" "=== EXPANSION OUTPUT BEGIN ===" "$out" 1
 
     # Test R — same as B but as explicit GoT controller path selection test
-    check "Test R: GoT controller path — analysis content absent" "STRUCTURE:" "$out" 1
+    check "Test R: GoT controller path — merged analysis blocks absent" "### STRUCTURE + CONSTRAINTS" "$out" 1
 
     # Test H — combined --minimal --quiet
     out=$(timeout $TIMEOUT claude --dangerously-skip-permissions "/prompt-graph --minimal --quiet Write a function." 2>&1 || true)
@@ -294,6 +351,11 @@ run_protocol() {
 
     # Tests G, O, P — require manual construction to trigger FAIL paths
     echo "  ${Y}ℹ${N}  [P] Tests G, O, P require manual construction — see Section 8 of SKILL.md"
+
+    # Tests S, T, U — v2 deep/verbose/deep-verbose full-path tests (expensive)
+    echo "  ${Y}ℹ${N}  [P] Test S (--deep): confirm deep announce, anti-conformity contracts, ANTI-FRAGILITY REPORT, 7 checks, 1 spawn"
+    echo "  ${Y}ℹ${N}  [P] Test T (--verbose): confirm KB BRANCH PLAN, multi-agent synthesis, META AGGREGATION with provenance, ANTI-FRAGILITY REPORT, EXPANSION OUTPUT, pass=2 re-verify"
+    echo "  ${Y}ℹ${N}  [P] Test U (--deep --verbose): all deep markers + all verbose markers. Max quality. N32 always selected."
 }
 
 # Dispatch

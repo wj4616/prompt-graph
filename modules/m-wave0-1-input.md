@@ -11,15 +11,27 @@
 
 **Protocol:**
 
-1. **Flag detection.** Scan the first and last standalone token positions for recognized flags:
-   - `--minimal` → set mode to minimal
-   - `--verbose` → set mode to verbose
-   - `--quiet` → set quiet flag (orthogonal — combines with any mode and with `--strict-verify`)
-   - `--strict-verify` → set strict_verify flag (orthogonal — combines with any mode and with `--quiet`). Lifts spawn budget cap from ≤2 to ≤3 to allow agent-separated N16 QualityGate verification (see Wave 5 module + SKILL.md Section 6).
-   - `--spec` → hard halt with message: `The \`--spec\` flag is not yet supported in prompt-graph v1. Deferred to v2. Run without a flag for normal mode, --minimal for lighter, or --verbose for deeper enhancement.`
-   - `--plan` → hard halt with message: `The \`--plan\` flag is not yet supported in prompt-graph v1. Deferred to v2. Run without a flag for normal mode, --minimal for lighter, or --verbose for deeper enhancement.`
+1. **Flag detection — orthogonal axes (depth × passes).** Scan the first and last standalone token positions for recognized flags. The mode system has two independent axes:
+     - **Depth axis** (how much analysis + enhancement): `--minimal` (lightest), none/default (normal), `--deep` (maximum single-pass cognitive amplification). Mutually exclusive — pick exactly one.
+     - **Passes axis** (single vs. double-pass): none/default (single pass), `--verbose` (two-pass with Wave 7-9 expansion).
+     - **Orthogonal:** `--deep` and `--verbose` combine → deep-verbose mode (maximum amplification, double-pass).
+
+   Recognized flags:
+   - `--minimal` → set depth to minimal
+   - `--deep` → set depth to deep (maximum single-pass cognitive amplification: full analysis, anti-conformity with novelty gate O3, KB-augmented synthesis with Tier-2 Dify MCP queries, anti-fragility self-testing N34 hardening)
+   - `--verbose` → set passes to verbose (two-pass expansion + re-verification)
+   - `--quiet` → set quiet flag (orthogonal — combines with any depth×passes mode and with `--strict-verify`)
+   - `--strict-verify` → set strict_verify flag (orthogonal — combines with any depth×passes mode and with `--quiet`). Lifts spawn budget cap from ≤2 to ≤3 to allow agent-separated N16 QualityGate verification (see Wave 5 module + SKILL.md Section 6).
+   - `--spec` → hard halt with message: `The \`--spec\` flag is not yet supported in prompt-graph v2. Deferred to a separate v2 spec/plan implementation plan. Run without a flag for normal mode, --minimal for lighter, --deep for cognitive amplification, or --verbose for multi-path synthesis.`
+   - `--plan` → hard halt with message: `The \`--plan\` flag is not yet supported in prompt-graph v2. Deferred to a separate v2 spec/plan implementation plan. Run without a flag for normal mode, --minimal for lighter, --deep for cognitive amplification, or --verbose for multi-path synthesis.`
+
+   **Conflict detection (depth-axis mutual exclusion):**
+   - Both `--minimal` AND `--deep` present → hard halt: `--minimal and --deep conflict — they are opposite ends of the depth axis. Pick one.`
    - Both `--minimal` AND `--verbose` present → hard halt: `--minimal and --verbose conflict — pick one mode.`
    - Unrecognized `--token` at first/last position → apply E13 disambiguation rule from Output Protocol (soft advisory if followed by prose, hard halt if standing alone).
+
+   **Orthogonal combination (no conflict):**
+   - `--deep --verbose` → deep-verbose mode. Both flags set. Pipeline runs full deep analysis + two-pass synthesis with expansion.
 
 2. **Input routing.** Classify the input (after flag stripping):
    - **Type A (plain text):** Inline text that is not a file path and does not contain XML with a recognized source meta tag. Pass through as normalized_input.
@@ -127,7 +139,7 @@ If the input is Type C (prior prompt-cog output) containing an 8-key INVENTORY w
 
 **Output:** INVENTORY YAML (20-key schema).
 
-**Role continuation note:** The analyst role persists into Wave 2 (for normal/verbose modes). In minimal mode, the analyst role concludes here and the ANALYST OUTPUT END marker closes.
+**Role continuation note:** The analyst role persists into Wave 2 (for normal/deep/verbose/deep-verbose modes). In minimal mode, the analyst role concludes here and the ANALYST OUTPUT END marker closes.
 
 ## File-path-read failure halt
 

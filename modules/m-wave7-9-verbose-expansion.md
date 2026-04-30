@@ -1,7 +1,7 @@
 # Waves 7–9 Module — Verbose Expansion + Second-Pass Verification + Final Router
 
 **Nodes:** N20 ExpansionNode (Wave 7)
-**Active modes:** verbose only
+**Active modes:** verbose, deep-verbose
 **Marker contract:** `=== EXPANSION OUTPUT BEGIN ===` ... `=== EXPANSION OUTPUT END ===` wraps N20 output.
 
 ## N20 ExpansionNode
