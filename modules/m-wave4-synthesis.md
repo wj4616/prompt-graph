@@ -262,7 +262,7 @@ When passes = verbose (including deep-verbose), after N13 returns and the `=== S
 This note appears between `=== SYNTHESIS RETURN END ===` and `=== VERIFICATION REPORTS BEGIN ===` (Wave 5). It signals that:
 
 - N13's output is the first-pass baseline — retained for comparison and as the revert target in Wave 9 if expansion fails.
-- N27 KBBranchRouter (Wave 4.5a) fires next to determine branch width and strategy selection.
+- N27 KBBranchRouter (Wave 3.5) fires next to determine branch width and strategy selection.
 - N28–N32 multi-path synthesis (Wave 4.5) runs parallel spawns using the strategies selected by N27.
 - N33 MetaAggregator (Wave 4.5) merges multi-path outputs into a single aggregated XML.
 - Wave 5 verification runs on the aggregated output, not N13's first-pass baseline.

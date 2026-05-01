@@ -2,7 +2,7 @@
 name: prompt-graph
 version: 2.0.0
 last_modified: 2026-04-29
-description: "Graph-of-Thought prompt enhancement skill. Up to 28 active nodes (N01-N20 + N27-N34; N21-N26 deferred) across up to 16 wave labels (Wave 0 through Wave 9, plus Wave 4.5a-d sub-waves) in 5 modes (minimal/normal/deep/verbose/deep-verbose) with 2 orthogonal flags (--quiet, --strict-verify). Two independent axes: depth (minimal/normal/deep) × passes (single/verbose). Wave-modular orchestrator: inline role-switched analysis + ideation; KB-augmented synthesis spawn in deep/verbose modes; orchestrator-inline parallel verification (N14/N15/N16) — or agent-separated N16 under --strict-verify; true GoT multi-path synthesis with meta-aggregation (N27-N33) in verbose modes; anti-fragility adversarial hardening (N34) with 5 attack vectors in deep/verbose; 3-tier KB integration (embedded snippets + Dify MCP runtime queries); SendMessage-first conditional back-edge repair with typed routing. Default budget ≤2 spawns (≤1 on Claude Code via SendMessage repair); --strict-verify lifts to ≤3 (single-pass modes) or ≤7 (two-pass verbose modes); verbose modes 3-4 baseline parallel (wall-clock ≈ 2 spawns; user-perceived 3-5 min typical). Supports --minimal, --deep, --verbose, --quiet, --strict-verify; --spec/--plan are deferred (hard halt) pending the separate v2 spec/plan implementation plan. Outputs enhanced prompt in --- delimiters; offers save to ~/docs/epiphany/prompts/."
+description: "Graph-of-Thought prompt enhancement skill. Up to 28 active nodes (N01-N20 + N27-N34; N21-N26 deferred) across up to 14 wave labels (Wave 0 through Wave 4.5 + 7-9) in 5 modes (minimal/normal/deep/verbose/deep-verbose) with 2 orthogonal flags (--quiet, --strict-verify). Two independent axes: depth (minimal/normal/deep) × passes (single/verbose). Wave-modular orchestrator: inline role-switched analysis + ideation; KB-augmented synthesis spawn in deep/verbose modes; orchestrator-inline parallel verification (N14/N15/N16) — or agent-separated N16 under --strict-verify; true GoT multi-path synthesis with meta-aggregation (N27-N33) in verbose modes; anti-fragility adversarial hardening (N34) with 5 attack vectors in deep/verbose; 3-tier KB integration (embedded snippets + Dify MCP runtime queries); SendMessage-first conditional back-edge repair with typed routing. Default budget ≤2 spawns (often 1 with SendMessage repair); --strict-verify lifts to ≤3; verbose modes 3-4 (parallel semantics). Supports --minimal, --deep, --verbose, --quiet, --strict-verify; --spec/--plan are deferred (hard halt) pending the separate v2 spec/plan implementation plan. Outputs enhanced prompt in --- delimiters; offers save to ~/docs/epiphany/prompts/."
 triggers: ["/prompt-graph"]
 ---
 
@@ -10,7 +10,7 @@ triggers: ["/prompt-graph"]
 
 Takes any user-provided prompt and produces a semantically optimized, graph-of-thought-structured version — preserving all original meaning, technical content, and intent while maximizing effectiveness when consumed by AI systems.
 
-Wave-modular orchestrator executes up to 16 wave labels (Wave 0 through Wave 9, plus Wave 4.5a-d sub-waves). Actual wave count by mode: **minimal** runs Waves 0, 1, 3, 4, 5, 6 (6 waves); **normal** runs Waves 0, 1, 2a, 2b, 3, 4, 5, 6 (9 wave-labels with Wave 2 split into merged sub-waves); **deep** runs Waves 0, 1, 2(merged), 3(with N10), 4(KB-augmented N13), 4.5d(N34 anti-fragility), 5, 6 (8 wave-labels, single pass); **verbose** runs normal path through Wave 4, then Waves 4.5a-d (N27→multi-path→N33→N34), 5, 6, 7(N20 expansion), 8(re-verify), 9(final router); **deep-verbose** runs deep path through Wave 4, then the verbose multi-path tail. N13 SynthesisAgent uses an Agent tool spawn; N28-N32 multi-path agents fire as parallel spawns in verbose modes; N16 QualityGate also spawns under `--strict-verify`; all other nodes run orchestrator-inline via role-switched blocks. Conditional back-edge repair with single-attempt cap enforces ≤2 total spawns per run by default (≤1 on Claude Code via O12 SendMessage repair); `--strict-verify` lifts to ≤3 (single-pass modes) or ≤7 (two-pass verbose modes — N13 + 2× N16-as-agent at Wave 5 + Wave 8 + 2-3 parallel + 1 repair); verbose modes use 3-4 baseline parallel spawns (wall-clock ≈ 2 spawn-equivalents; user-perceived ~3-5 min typical).
+Wave-modular orchestrator executes up to 14 wave labels (Wave 0 through Wave 9, plus Wave 4.5 sub-waves). Actual wave count by mode: **minimal** runs Waves 0, 1, 3, 4, 5, 6 (6 waves); **normal** runs Waves 0, 1, 2a, 2b, 3, 4, 5, 6 (9 wave-labels with Wave 2 split into merged sub-waves); **deep** runs Waves 0, 1, 2(merged), 3(with N10), 4(KB-augmented N13), 4.5d(N34 anti-fragility), 5, 6 (8 wave-labels, single pass); **verbose** runs normal path through Wave 4, then Waves 4.5a-d (N27→multi-path→N33→N34), 7(N20 expansion), 8(re-verify), 9(final router); **deep-verbose** runs deep path through Wave 4, then the verbose multi-path tail. N13 SynthesisAgent uses an Agent tool spawn; N28-N32 multi-path agents fire as parallel spawns in verbose modes; N16 QualityGate also spawns under `--strict-verify`; all other nodes run orchestrator-inline via role-switched blocks. Conditional back-edge repair with single-attempt cap enforces ≤2 total spawns per run by default (often 1 with O12 SendMessage repair); `--strict-verify` lifts to ≤3; verbose modes use 3-4 spawns (parallel semantics, wall-clock ≈ 2).
 
 **Positioned alongside** `prompt-cog` (flat 7-step sequential pipeline) and `epiphany-prompt` (modular subagent-orchestrated). Inherits prompt-cog's output-marker discipline and technique catalog; adds true GoT topology: parallel verifier group, branching router, conditional back-edge, multi-path parallel synthesis with meta-aggregation (double-tree completion), anti-fragility adversarial hardening.
 
@@ -26,7 +26,7 @@ Wave-modular orchestrator executes up to 16 wave labels (Wave 0 through Wave 9, 
 
 **Orthogonal flags (combine with any mode AND with each other):**
 - **Quiet** (`--quiet`): Suppresses save prompt and XML display; writes directly to file.
-- **Strict-Verify** (`--strict-verify`): Spawns N16 QualityGate as a separate Agent (Intuition-Verification Partnership). Lifts spawn budget cap from ≤2 to ≤3 (single-pass modes: minimal/normal/deep) or ≤7 (two-pass verbose modes: verbose/deep-verbose — N13 + 2× N16-as-agent + 2-3 parallel + 1 repair).
+- **Strict-Verify** (`--strict-verify`): Spawns N16 QualityGate as a separate Agent (Intuition-Verification Partnership). Lifts spawn budget cap from ≤2 to ≤3 (or ≤4 in verbose modes).
 
 Deferred: N21–N26 spec/plan domain analysis nodes (separate v2 plan).
 
@@ -41,7 +41,7 @@ Deferred: N21–N26 spec/plan domain analysis nodes (separate v2 plan).
 | `/prompt-graph --deep` | Deep mode — maximum single-pass cognitive amplification (anti-conformity + KB-augmented synthesis + anti-fragility). |
 | `/prompt-graph --verbose` | Verbose mode — multi-path parallel synthesis + aggregation + anti-fragility + second-pass expansion. |
 | `/prompt-graph --quiet` | Save directly without asking. Orthogonal flag, combines with any mode and with `--strict-verify`. |
-| `/prompt-graph --strict-verify` | Agent-separated N16 QualityGate verification (Intuition-Verification Partnership). Lifts spawn budget from ≤2 to ≤3 in single-pass modes (≤7 in two-pass verbose modes). Orthogonal flag — combines with any mode and with `--quiet`. |
+| `/prompt-graph --strict-verify` | Agent-separated N16 QualityGate verification (Intuition-Verification Partnership). Lifts spawn budget from ≤2 to ≤3 (≤4 in verbose modes). Orthogonal flag — combines with any mode and with `--quiet`. |
 | `/prompt-graph --deep --verbose` | Deep + verbose combined → deep-verbose mode. Maximum quality, maximum cost. |
 | `/prompt-graph --minimal --quiet` | Both apply. |
 | `/prompt-graph --deep --quiet` | Both apply. |
@@ -49,7 +49,7 @@ Deferred: N21–N26 spec/plan domain analysis nodes (separate v2 plan).
 | `/prompt-graph --strict-verify --quiet` | Both apply. Spawn budget ≤3. |
 | `/prompt-graph --minimal --strict-verify` | Minimal analysis depth + agent-separated quality verifier. Spawn budget ≤3. |
 | `/prompt-graph --deep --strict-verify` | Deep analysis + agent-separated quality verifier. Spawn budget ≤3. |
-| `/prompt-graph --verbose --strict-verify` | Multi-path synthesis + agent-separated quality verifier on both passes. Spawn budget ≤7 (N13 baseline + 2-3 PG5 parallel + 2× N16-as-agent at Wave 5 and Wave 8 + 1 optional repair). |
+| `/prompt-graph --verbose --strict-verify` | Multi-path synthesis + agent-separated quality verifier on both passes. Spawn budget ≤4. |
 | Both `--minimal` and `--verbose` | HALT — flag conflict. Message: `--minimal and --verbose conflict — pick one mode.` |
 | Both `--minimal` and `--deep` | HALT — flag conflict. Message: `--minimal and --deep conflict — they are opposite ends of the depth axis. Pick one.` |
 | `--spec` or `--plan` | HALT — deferred. Message: `The --spec flag is not yet supported in prompt-graph v2. Deferred to a separate v2 spec/plan implementation plan.` (Same format for --plan.) |
@@ -102,9 +102,7 @@ Then enumerate what was frozen (example: "Detected: imperative task sequence + e
 | Strict-Verify + Minimal | `Using prompt-graph (minimal + strict-verify mode) to enhance this prompt.` | Both minimal advisory AND strict-verify advisory present (concatenated) |
 | Strict-Verify + Deep | `Using prompt-graph (deep + strict-verify mode) to enhance this prompt.` | Both deep advisory AND strict-verify advisory present (concatenated) |
 | Strict-Verify + Verbose | `Using prompt-graph (verbose + strict-verify mode) to enhance this prompt.` | Both verbose advisory AND strict-verify advisory present (concatenated) |
-| Strict-Verify + Quiet | `Using prompt-graph (quiet + strict-verify mode) to enhance this prompt.` | Quiet mode complexity advisory (if triggered) AND strict-verify advisory present (concatenated) |
-
-Combinations not explicitly listed (e.g., `--quiet --deep --verbose --strict-verify`) compose by concatenating the base-mode advisory, the quiet flag suppression of the save prompt, and the strict-verify advisory.
+| Strict-Verify + Quiet | `Using prompt-graph (quiet + strict-verify mode) to enhance this prompt.` | Strict-verify advisory present |
 
 ### Complexity advisory (E04)
 
@@ -374,9 +372,7 @@ Columns: **Edge ID | Source → Target | Channel Name | Data Type | Cardinality 
 - `1:N` — single source fans out to multiple targets
 - `N:1` — multiple sources aggregate into one target
 
-**Conditional edges:** E19 and E22 are GoT-distinguishing edges. E19 is the repair back-edge (activates only on FAIL AND `completed_repairs = 0` — single firing per run). E22 is the verbose-only forward branch (activates only on PASS AND `not expansion_completed` in verbose/deep-verbose mode — fires once per run, whether PASS came from initial synthesis or from post-repair re-verification). E81 fans only to agents selected in N27's branch plan (2–3 of 5 possible). E82–E86 activate only when their source agent was selected by N27. E91 is the deep-mode shortcut — single-agent path bypasses the multi-path layer entirely.
-
-**E22 vs E90 disambiguation (NB2 resolution):** In verbose / deep-verbose modes, both E22 and E90 reach N20, but they are NOT redundant XML payloads. **E90 is the topology-explicit edge** — it documents that N34 is the upstream source of N20's input (preserving graph integrity for the double-tree topology). **E22 is the runtime routing edge** — N17 retains N34's hardened XML as `first_pass_verified_xml` (via E89's retention) and forwards it to N20 only after Wave 5 verification PASSes. The single XML payload travels: N34 → N17 (via E89, retained as state) → N20 (via E22, when N17 routes the PASS decision). E90 is not a separate XML transmission at runtime — it is the conceptual data-lineage annotation that makes the topology audit-friendly. Only one XML reaches N20 per run.
+**Conditional edges:** E19 and E22 are GoT-distinguishing edges. E19 is the repair back-edge (activates only on FAIL AND `completed_repairs = 0` — single firing per run). E22 is the verbose-only forward branch (activates only on PASS AND `not expansion_completed` in verbose/deep-verbose mode — fires once per run, whether PASS came from initial synthesis or from post-repair re-verification). In v2, E22 receives hardened XML via E90 (not raw N13 output); E89 replaces E15b as the fallback retention path in deep/verbose/deep-verbose modes. E81 fans only to agents selected in N27's branch plan (2–3 of 5 possible). E82–E86 activate only when their source agent was selected by N27. E91 is the deep-mode shortcut — single-agent path bypasses the multi-path layer entirely.
 
 ## Section 3 — Mode Activation Matrix
 
@@ -392,7 +388,7 @@ Columns: **Mode | Invocation Flag(s) | Active Node IDs | KB Queries Allowed | Ma
 | **verbose** | `--verbose` | N01–N20, N27–N34 (28 nodes — normal path + multi-pass tail) | Tier 2 (non-blocking MCP): dify-thought-kb for topology, dify-cognitive-kb for trait at N27 | 1 baseline + 2–3 parallel + 1 optional repair = ≤5 spawns (3–4 without repair; wall-clock ≈ 2) |
 | **deep-verbose** | `--deep --verbose` | All 34 nodes (N01–N34) | Tier 2 at both N13 (deep augmentation) AND N27 (branch routing) | 1 baseline + 2–3 parallel + 1 optional repair = ≤5 spawns (3–4 without repair; wall-clock ≈ 2) |
 | **quiet** | `--quiet` (combines with any) | Same as combined mode | Same as combined mode | Same as combined mode |
-| **strict-verify** | `--strict-verify` (combines with any) | Same as combined mode + N16 spawns as agent (per pass) | Same as combined mode | +1 spawn per N16-as-agent firing. Single-pass modes (minimal, normal, deep — 1 verification pass): ≤3 (N13 + N16 + 1 optional repair). Two-pass modes (verbose, deep-verbose — 2 verification passes): ≤7 (N13 + 2×N16-as-agent at Wave 5 and Wave 8 + 2–3 parallel + 1 repair). With SendMessage repair: subtract 1. **(DC3)** |
+| **strict-verify** | `--strict-verify` (combines with any) | Same as combined mode + N16 spawns as agent | Same as combined mode | +1 spawn for N16-as-agent. Depth modes: ≤3 (N13 + N16 + 1 optional repair). Verbose modes: ≤6 (N13 + N16 + 2–3 parallel + 1 repair). With SendMessage repair: subtract 1. |
 
 **Per-node mode activation (vertical view):**
 
@@ -469,7 +465,7 @@ Columns: **Group ID | Node IDs in Group | Shared Upstream Source | Independence 
 
 Columns: **Strategy ID | Description | Applicable Mode(s) | Expected Gain**.
 
-13 active optimizations (O1–O9, O11–O14); O10 reserved for v2+ per Roadmap. All 13 are load-bearing (O1–O9 from v1.0; O11/O12/O13 added in v1.1; O14 added in v2.0):
+All 13 active optimizations are load-bearing (O1–O9 from v1.0; O11/O12/O13 added in v1.1; O14 added in v2.0; O10 reserved for v2+ candidate per Roadmap):
 
 | ID | Strategy | Modes | Expected Gain |
 |---|---|---|---|
@@ -485,7 +481,7 @@ Columns: **Strategy ID | Description | Applicable Mode(s) | Expected Gain**.
 | O11 | **Pre-spawn INVENTORY coverage check (Wave 4, item 7 of pre-spawn checklist).** After spawn-prompt assembly, verify each non-empty INVENTORY key is referenced in the prompt body. If a key has no items reachable via grep, append a `=== PRESERVE-VERBATIM RIDER ===` listing the missing items to the spawn prompt — non-blocking. Pre-empts a class of preservation-check 6a failures that would otherwise consume the repair spawn slot. | all | Saves ~1 repair spawn per failure path where the loss is purely "INVENTORY item not mentioned in contracts but still required by HG2." Cost: orchestrator-inline grep over assembled prompt; no spawn impact. |
 | O12 | **SendMessage-first repair on E19.** Capture `synthesis_agent_id` at first N13 spawn return (Wave 4). On E19 firing (repair path), if the agent ID is still valid AND the host runtime supports SendMessage → resume the existing N13 agent with a delta-only repair message (failing_check_ids + family hint + revision instruction). If unavailable → fall back to fresh-spawn (legacy v1.0 behavior). | all | **Budget-positive:** the SendMessage path converts the repair attempt from a spawn into a message-resume, dropping default-mode total spawns from 2 to 1 in the repair case while preserving the repair attempt. Inherits the synthesis agent's full context (synthesis prompt + first draft + self-check) — strictly stronger context than the legacy fresh-spawn repair which received only the repair_signal. Frees the second spawn slot for `--strict-verify` or future use. |
 | O13 | **Typed repair routing at N17.** Classify failing_checks into Family-A (preservation 6a–6b), Family-B (fidelity 6f), Family-C (quality 6h–6l), or Mixed. Route each family to the most-likely root-cause node before re-engaging N13: Family-A replays N04 inline with a "missed item" hint; Family-B replays N09 inline with INTENT-emphasis; Family-C goes directly to N13; Mixed replays N09→N11 inline before N13. The replay nodes run orchestrator-inline (no spawn cost); only the N13 step counts toward the spawn budget (which is itself replaced by SendMessage where possible per O12). | all | Repair quality scales with root-cause locality — preservation failures get fixed by re-extracting INVENTORY rather than asking N13 to recover from a malformed input. Respects ≤2-spawn cap (≤3 under `--strict-verify`) because all replays are inline. |
-| **O14** | **Budget-conscious branch downgrade (N27).** If the maximum **per-agent** assembled spawn prompt size approaches O7's ~15k token threshold (any single branch agent's prompt nears the cap), downgrade branch width by 1: 3→2, 2→2 (floor at 2). Measurement is per-agent (max across agents), NOT summed across agents; spawn budget is not the issue (parallel semantics, wall-clock ≈ 1) — per-agent context quality is. A 3-agent branch with cramped context is worse than a 2-agent branch with room. | **verbose, deep-verbose** | Prevents multi-path synthesis from degrading under context pressure. The branch still runs (floor 2), but the third strategy — which would have had the weakest fit — is pruned. |
+| **O14** | **Budget-conscious branch downgrade (N27).** If the assembled per-agent spawn prompts for all branch agents approach O7's ~15k token threshold (per-agent context pressure detected), downgrade branch width by 1: 3→2, 2→2 (floor at 2). Spawn budget is not the issue (parallel semantics, wall-clock ≈ 1); per-agent context quality is. A 3-agent branch with cramped context is worse than a 2-agent branch with room. | **verbose, deep-verbose** | Prevents multi-path synthesis from degrading under context pressure. The branch still runs (floor 2), but the third strategy — which would have had the weakest fit — is pruned. |
 
 ## Section 6 — GoT Controller Logic
 
@@ -604,7 +600,7 @@ At runtime the "quality gate" is N17 RepairRouter's aggregation across 7 consoli
 - Aggregate from N14 (6a–6b), N15 (6f), N16 (6h–6l). If N14 was skipped per O1 (empty INVENTORY), treat preservation failing_checks as empty.
 - Build failing_checks list and affected_sections list.
 - If empty → PASS → routing depends on mode + `expansion_completed` state: in verbose/deep-verbose mode with `expansion_completed = false`, route via E22 to N20 (expansion); in all other cases, route via E20 to N18 (emit end).
-- If non-empty AND `completed_repairs = 0` → execute O13 family-specific inline replay per Appendix C Step 3 (Family-A: re-run N04 + N09→N11; Family-B: re-run N09→N11; Family-C: no replay; Mixed: re-run N09→N11) → build mode-conditional repair_signal (repair_count=1) → back-edge via E19 to N13 → after N13 returns, increment `completed_repairs` to 1.
+- If non-empty AND `completed_repairs = 0` → build mode-conditional repair_signal (repair_count=1) → back-edge via E19 to N13 → after N13 returns, increment `completed_repairs` to 1.
 - If non-empty AND `completed_repairs = 1` → cap hit; retrieve retained fallback XML via E15b (or E89 in deep/verbose/deep-verbose); annotate `<!-- VERIFICATION FAILED: [check IDs] — unverified output -->`; emit via E20 to N18.
 
 **(d) Termination conditions (three explicit exit paths):**
@@ -624,7 +620,7 @@ Before either mechanism fires, N17 classifies the failure family per O13 typed-r
 
 **(f) KB integration (Tier 2, v2):**
 
-Deep and verbose/deep-verbose modes fire non-blocking MCP queries at wave entry. Each query has a 5-s hard wall-clock cap (DF2); if a response has not arrived by deadline the orchestrator proceeds with the heuristic fallback. Worst-case wait per wave: 5s (queries within a wave fire concurrently). Worst-case per deep-verbose run: ~10s of KB-wait (Wave 4 + Wave 4.5a). Pipelines never wait *indefinitely* on KB responses — the KB is an advisor, not a gate.
+Deep and verbose/deep-verbose modes fire non-blocking MCP queries at wave entry. Pipelines never wait on KB responses — queries fire; nodes proceed with whatever is available at decision time. The KB is an advisor, not a gate.
 
 | Mode | Query point | Server | Purpose | Fallback |
 |---|---|---|---|---|
@@ -634,7 +630,7 @@ Deep and verbose/deep-verbose modes fire non-blocking MCP queries at wave entry.
 | verbose | Wave 4.5a (N27) | `dify-cognitive-kb` | Cognitive trait for N32 (if selected) | "Precision Forcing" |
 | deep-verbose | Both Wave 4 + Wave 4.5a | All four queries | Combined augmentation + routing | Heuristic + Snippets |
 
-All KB-derived decisions annotate their provenance (KB source annotation format per m-wave4.5a-kb-branch.md item 7). Zero-hallucination mechanism: every claim about KB research cites whether it came from a runtime MCP query or an embedded snippet.
+All KB-derived decisions annotate their provenance (KB source annotation format per m-wave3.5-kb-branch.md item 7). Zero-hallucination mechanism: every claim about KB research cites whether it came from a runtime MCP query or an embedded snippet.
 
 **(g) Spawn budget by mode:**
 
@@ -643,8 +639,8 @@ All KB-derived decisions annotate their provenance (KB source annotation format 
 | minimal | 1 | 1 | 2 | +1 |
 | normal | 1 | 1 | 2 | +1 |
 | deep | 1 | 1 | 2 | +1 |
-| verbose | 3–4 (parallel, wall ≈ 2) | 3–4 (SendMessage) | 4–5 | +2 (N16 spawns at Wave 5 AND Wave 8) |
-| deep-verbose | 3–4 (parallel, wall ≈ 2) | 3–4 (SendMessage) | 4–5 | +2 (N16 spawns at Wave 5 AND Wave 8) |
+| verbose | 3–4 (parallel, wall ≈ 2) | 3–4 (SendMessage) | 4–5 | +1 |
+| deep-verbose | 3–4 (parallel, wall ≈ 2) | 3–4 (SendMessage) | 4–5 | +1 |
 
 **Repair spawn mechanics (fresh-spawn fallback path only):** When the fallback fires, the repair Agent call uses `subagent_type = subagent_type_used` (the value recorded at first N13 spawn) and includes the repair_signal as the inputs block in place of the first-attempt analysis/contracts. Total fresh spawns across a run: ≤2 default (first attempt + at most one repair fallback); ≤3 under `--strict-verify` (first attempt + N16 verifier agent + at most one repair fallback). **Default-mode happy-path spawn count is 1** when SendMessage succeeds for repair.
 
@@ -698,11 +694,17 @@ Full per-node protocols live in the corresponding module file.
 - Output: STRUCTURE block + CONSTRAINTS block (added to ongoing ANALYST OUTPUT).
 - Marker contract: Continues the ANALYST OUTPUT block opened in Wave 1.
 
-**Wave 2b — Technique Gap + Weakness Detection (N07 + N08, merged)** [normal, deep, verbose, deep-verbose]
-- Context: Inline, orchestrator — same analyst role, continued. Per v2 merge (Section 1.5 N07+N08 row), N07 and N08 are produced jointly in a single role-switched inference under the `### TECHNIQUE GAPS + WEAKNESSES` header — saves 1 inference vs. v1's 2-step Wave 2b/2c split.
+**Wave 2b — Technique Gap (N07)** [normal, deep, verbose, deep-verbose]
+- Context: Inline, orchestrator — same analyst role, continued.
 - Module: `m-wave2-analysis.md`
-- Input: Normalized input + INTENT block (from N03) + STRUCTURE + CONSTRAINTS (from N05/N06 merged output).
-- Output: Merged TECHNIQUE GAPS + WEAKNESSES block. TECHNIQUES sub-section (T1–T13 streamlined gap analysis) and WEAKNESSES sub-section (numbered W1…Wn, each scored high/medium/low with causal explanation). Outputs remain logically distinct (E08 carries TECHNIQUES; E09 carries WEAKNESSES) per Section 1.5.
+- Input: Normalized input + INTENT block (from N03).
+- Output: TECHNIQUES block.
+
+**Wave 2c — Weakness Detection (N08)** [normal, deep, verbose, deep-verbose]
+- Context: Inline, orchestrator — same analyst role, continued.
+- Module: `m-wave2-analysis.md`
+- Input: Normalized input + INTENT + STRUCTURE + CONSTRAINTS.
+- Output: WEAKNESSES block (numbered W1…Wn, each scored high/medium/low with causal explanation).
 - Step-self-check (E14 equivalent): INTENT specificity, WEAKNESSES causal explanation presence, INVENTORY completeness — annotated into the block but non-blocking.
 - Marker contract: `=== ANALYST OUTPUT END ===` closes here in normal/deep/verbose/deep-verbose.
 
@@ -742,7 +744,7 @@ Full per-node protocols live in the corresponding module file.
 
 **Wave 4.5a — KB Branch Routing (N27)** [verbose, deep-verbose]
 - Context: Inline, orchestrator — structural routing, no role-switched persona.
-- Module: `m-wave4.5a-kb-branch.md`
+- Module: `m-wave3.5-kb-branch.md`
 - Input: N13 baseline XML (via E80), INVENTORY from N04 (via E92), resolved_contracts from N11 (via E93), mode_flags, analysis_blocks. In deep-verbose: resolved_contracts include anti-conformity additions from N10.
 - Output: Branch plan — complexity tier (Simple/Moderate/Complex), branch width (2–3), strategy assignments with one-line rationale, KB source annotations. In deep-verbose: N32 always selected; cognitive trait assigned dynamically from MCP query (fallback: "Precision Forcing").
 - Protocol: Complexity assessment (INVENTORY item count + constraint count) → optional non-blocking MCP KB queries → branch width determination → strategy selection via KB Snippet 5 matching heuristic → O14 budget-conscious downgrade if context pressure detected → branch plan emission with KB source annotations (zero-hallucination mechanism).
@@ -751,7 +753,7 @@ Full per-node protocols live in the corresponding module file.
 
 **Wave 4.5b — Multi-Path Parallel Synthesis (N28–N32)** [verbose, deep-verbose]
 - Context: True parallel Agent tool calls — PG5 fires 2–3 agents simultaneously. This is the only parallel group in prompt-graph using literal concurrent agent spawns (not role-switched inline blocks).
-- Module: `m-wave4.5b-multi-synthesis.md`
+- Module: `m-wave4-multi-synthesis.md`
 - Role declaration: Per-agent (see module for strategy-specific deltas). All agents share: "You are a synthesis agent. You receive a normalized input, an analysis, and a list of enhancement contracts. Your task is to produce an enhanced prompt XML that executes all active contracts while preserving every INVENTORY item verbatim."
 - Input: Assembled per-agent spawn prompt from N27 via E81 (base S1-S4 protocol + strategy-specific delta). All agents receive: normalized input + analysis blocks + resolved_contracts (includes anti-conformity in deep-verbose) + embedded KB Snippets 1–6 + INVENTORY verbatim contract. Each agent's delta (appended after `=== CONTRACTS END ===`) is the differentiating instruction.
 - Agent-type: `subagent_type="prompt-architect"` with `general-purpose` fallback (same selection logic as N13).
@@ -812,8 +814,8 @@ Full per-node protocols live in the corresponding module file.
 - N17 decision logic (full algorithm in Appendix C):
   - Aggregate failing_checks from E16, E17, E18.
   - **Classify failure_family per O13** (A/B/C/Mixed) before deciding.
-  - If empty AND (mode NOT IN {verbose, deep-verbose} OR `expansion_completed = true`) → E20 to N18 (PASS path; terminal).
-  - If empty AND mode IN {verbose, deep-verbose} AND `expansion_completed = false` → E22 to N20 (route to expansion); N17 retains first_pass_verified_xml as internal state.
+  - If empty AND (mode != verbose OR `expansion_completed = true`) → E20 to N18 (PASS path; terminal).
+  - If empty AND mode = verbose AND `expansion_completed = false` → E22 to N20 (route to expansion); N17 retains first_pass_verified_xml as internal state.
   - If non-empty AND `completed_repairs = 0` → execute O13 family-specific inline replay (orchestrator-only; no spawn cost): Family-A → re-run N04 + N09→N11; Family-B → re-run N09→N11; Family-C → no replay; Mixed → re-run N09→N11. Then build repair_signal (repair_count=1, failure_family set) → E19 fires via O12 SendMessage-First Repair Protocol: SendMessage-resume to `synthesis_agent_id` if available; fresh-spawn fallback otherwise. After repair returns: increment `completed_repairs` to 1, re-aggregate.
   - If non-empty AND `completed_repairs = 1` → cap hit; retrieve `draft_xml_fallback` (retained from E15b), annotate `<!-- VERIFICATION FAILED: [checks] — unverified output -->`, E20 to N18.
 - Router signal emission (exactly one):
@@ -866,7 +868,7 @@ Rules that span multiple waves, not owned by a single node:
 | **subagent_type_used retention** (records `prompt-architect` or `general-purpose`; matches whichever was accepted at first N13 spawn) | Wave 4 (first N13 spawn) | Wave 6 (fresh-spawn fallback uses same subagent_type for consistency) | — |
 | **failure_family classification (O13)** (Family-A/B/C/Mixed; derived from failing_checks at aggregation time) | Wave 6 (Step 2 of N17 decision) | Wave 6 (Step 3 inline replays + Step 4 family_hint emission) | — |
 | **Verbatim contract for INVENTORY items under synthesis** | N13 synthesis spawn prompt body | N13 agent execution | N14 checks 6a–6b |
-| **Role transition declarations** (explicit closes on each role switch) | Wave 2b end (analyst→ideation; analyst phase wraps after the merged TECHNIQUE GAPS + WEAKNESSES block), Wave 4 pre-spawn (ideation→synthesis-spawn-context), Wave 5 end (verifier→orchestrator), Wave 6 end (orchestrator→output) | Role switch boundaries | Smoke test grep targets |
+| **Role transition declarations** (explicit closes on each role switch) | Wave 2c end (analyst→ideation), Wave 4 pre-spawn (ideation→synthesis-spawn-context), Wave 5 end (verifier→orchestrator), Wave 6 end (orchestrator→output) | Role switch boundaries | Smoke test grep targets |
 
 ## Section 8 — Smoke Test Checklist
 
@@ -1041,9 +1043,9 @@ Step 3 — Inline replay per family (O13; orchestrator-inline; no spawn cost):
   Mixed   → re-run N09 → N11 with combined hint covering all failing families.
 
 Step 4 — Route:
-  IF failing_checks empty AND (mode NOT IN {verbose, deep-verbose} OR expansion_completed = true):
+  IF failing_checks empty AND (mode != verbose OR expansion_completed = true):
     → E20 route {verified_xml, "verified", preservation_summary} to N18 (PASS path; terminal)
-  IF failing_checks empty AND mode IN {verbose, deep-verbose} AND expansion_completed = false:
+  IF failing_checks empty AND mode = verbose AND expansion_completed = false:
     → E22 route first_pass_verified_xml to N20 (expansion wave)
     retain first_pass_verified_xml as N17 internal state (for potential Wave 9 revert)
   IF non-empty AND completed_repairs = 0:
@@ -1072,14 +1074,12 @@ Step 4 — Route:
 
 **Total spawns per run (budget check):**
 
-| Mode | Default (no strict-verify) | `--strict-verify` | Notes |
+| Mode | SendMessage available + repair fires | SendMessage unavailable + repair fires | No repair (PASS path) |
 |---|---|---|---|
-| minimal / normal / deep | ≤2 spawns | ≤3 spawns | Single-pass: N13 + optional repair; strict-verify adds N16-as-agent |
-| verbose / deep-verbose | ≤5 spawns | ≤7 spawns | Multi-pass: N13 baseline + 2–3 parallel PG5 agents + optional repair; strict-verify adds 2× N16-as-agent (Wave 5 + Wave 8) |
+| default (any mode) | **1 spawn** (N13 only; repair via SendMessage) | **2 spawns** (N13 + fresh-spawn repair) | **1 spawn** |
+| `--strict-verify` | **2 spawns** (N13 + N16-as-agent; repair via SendMessage) | **3 spawns** (N13 + N16-as-agent + fresh-spawn repair) | **2 spawns** |
 
-With SendMessage repair: subtract 1 from the repair column in both cases.
-
-No single-pass mode produces more than 3 spawns total (under `--strict-verify` worst case). Verbose/deep-verbose modes may reach ≤5 (default) or ≤7 (strict-verify) due to parallel PG5 agents and second-pass N16 verification.
+No path produces more than 3 spawns total (under `--strict-verify` worst case).
 
 **Repair signal schema (all modes — minimal, normal, deep, verbose, deep-verbose):**
 
@@ -1120,7 +1120,7 @@ Verification failed on checks: [list]. To retry with a better outcome:
 
 | Tier | Source | Availability | Latency | Failure mode |
 |---|---|---|---|---|
-| **Tier 1** | Embedded KB Snippets 1–6 in `m-wave4-synthesis.md` and `m-wave4.5b-multi-synthesis.md` | Always (static, shipped in skill files) | 0ms | None — static text |
+| **Tier 1** | Embedded KB Snippets 1–6 in `m-wave4-synthesis.md` and `m-wave4-multi-synthesis.md` | Always (static, shipped in skill files) | 0ms | None — static text |
 | **Tier 2** | Dify MCP: `mcp__dify-thought-kb__ToT-GoT-Cot-KB-retrieval` and `mcp__dify-cognitive-kb__cognitive-research-kb-dify` | Non-blocking — pipelines fire query but proceed with whatever is available at decision time. KB is advisor, not gate. | Variable (network) | Timeout / error / empty → fall back to Tier 1 heuristic or embedded snippet |
 | **Tier 3** | KB-directed synthesis agents (N28–N32 in verbose/deep-verbose modes). Agents receive both Tier 1 snippets AND Tier 2 query results in their spawn prompts. | Available when Tier 2 query succeeded AND N27 selected the relevant agent. Agents run regardless of KB state — Tier 2 absence means they run on Tier 1 alone. | Agent spawn overhead (parallel, wall-clock ≈ 1) | Agent runs on Tier 1 only — gracefully degraded, not failed |
 
@@ -1136,7 +1136,7 @@ Verification failed on checks: [list]. To retry with a better outcome:
 
 ### Zero-hallucination KB provenance annotations
 
-Every KB-derived decision MUST annotate its provenance (per m-wave4.5a-kb-branch.md item 7). Format:
+Every KB-derived decision MUST annotate its provenance (per m-wave3.5-kb-branch.md item 7). Format:
 
 | Source | Annotation |
 |---|---|
@@ -1235,7 +1235,7 @@ Documents what was consolidated and why.
 
 5. **GoT justification (anti-isomorphism claim).** GoT offers O(log_k N) latency with N volume — strictly dominating CoT (N,N) and ToT (log_k N, log_k N). prompt-graph's GoT structure is specifically justified by: aggregation at N11 (primary + anti-conformity contracts merge into resolved list), refinement back-edge N17 → N13, and non-tree transformation at N12 → N13 (advisory passes context continuity, not a branch). Simple inputs are effectively CoT-executed under minimal mode. The skill is NOT isomorphic to prompt-cog's flat 7-step pipeline.
 
-6. **Standalone-capable by design (v1.x baseline; superseded for v2 — see Note 19).** Tier 1 embedded snippets ensure the pipeline runs without MCP. Knowledge from cognitive KB + thought KB (queried at design time during brainstorming) is baked into snippets in `m-wave4-synthesis.md` (CoT/ToT/GoT topology; Structured Output; Self-Refine + Intuition-Verification Partnership + TRIZ; Constraint Escape + Precision Forcing + Falsification — Snippet 4 added in v1.1; Snippets 5-6 added in v2 for deep-mode augmentation). v1.x was strictly standalone — no runtime KB queries. **v2 adds opportunistic Tier 2 MCP queries** (non-blocking, 5s hard timeout) at N13 deep augmentation and N27 branch routing — see Design Note 19 for the 3-tier architecture. Tier 1 alone remains a complete-runtime fallback if MCP is unavailable.
+6. **Standalone by design.** No MCP dependencies, no runtime KB queries. Knowledge from cognitive KB + thought KB (queried at design time during brainstorming) is baked into 4 embedded snippets in `m-wave4-synthesis.md` (CoT/ToT/GoT topology; Structured Output; Self-Refine + Intuition-Verification Partnership + TRIZ; Constraint Escape + Precision Forcing + Falsification — Snippet 4 added in v1.1) plus GoT controller framing in Section 6. Runtime is deterministic — no external failures, no added latency from network calls.
 
 7. **INVENTORY schema.** The 20-key Extended Schema (Appendix A) is authoritative in all modes. Legacy 8-key Core Schema is accepted on Type C prompt-cog input with mechanical upgrade (Appendix A). Downstream nodes iterate lists deterministically — schema is a binding contract, not a hint.
 
@@ -1255,9 +1255,9 @@ Documents what was consolidated and why.
 
 15. **HG3 enforcement architecture — known failure mode and mitigations.** HG3 is a declarative constraint: it states rules but creates no mechanical barrier against tool calls. The known failure mode (observed in production): the orchestrator receives an input containing detailed imperative instructions + embedded `file://` URIs, reads the SKILL.md (which contains HG3), but then drifts into executing the instructions anyway — opening files, analyzing codebases, spawning implementation agents. Mitigations applied in v1: (a) Tool-call whitelist added as HG3 sub-rule 4 — explicitly names only three permitted call types; (b) Content freeze signal — mandatory first output for Type D inputs, creating a public transcript-verifiable commitment before any analysis begins; (c) Type D detection upgraded from "advisory + proceed" to "hard freeze + enumerated obligations"; (d) Decision table in m-wave0-1-input.md N01 gives concrete examples of the embedded-URI prohibition. The fundamental tension: declarative rules in a generative model can be overridden by strong contextual pull from detailed instructions in the input. The whitelist + public commitment are the strongest available countermeasure within this architecture. `--strict-verify` (v1.1) provides a path to context-isolated quality verification where the verifier does not share the orchestrator's instruction-following pull, reducing the surface for HG3 drift on the verification side specifically.
 
-16. **Topology asymmetry — deliberate (D1).** Per Besta et al., a fully-formed GoT topology has a *double-tree* shape: a k-ary decomposition tree mirrored by an aggregation tree. prompt-graph's topology is asymmetric: the aggregation half is well-formed (N09 → N11 → N13 → N17), but the decomposition half is shallow (PG1 fan-out k=2; PG2 fan-out k=2; merged Wave 2b producing TECHNIQUES+WEAKNESSES jointly). **Why deliberate:** the input to prompt-graph is a *text artifact*, not a divisible problem. Deeper k-ary decomposition would split the text into pieces that must be re-joined — duplicating context cost and risking loss of cross-section coherence (e.g., a constraint in section X that references INVENTORY items first introduced in section Y). The aggregation half is where the value lives — synthesizing analysis blocks + contracts + INVENTORY into a single coherent enhanced output. If a future evolution motivates deeper decomposition, the natural site is N07 TechniqueGapAnalyst (split T1–T4 / T5–T8 / T9–T13 into PG2b sub-analyzers) — but no usage data currently motivates this. Asymmetry is the correct shape for a text-grounded GoT.
+16. **Topology asymmetry — deliberate (D1).** Per Besta et al., a fully-formed GoT topology has a *double-tree* shape: a k-ary decomposition tree mirrored by an aggregation tree. prompt-graph's topology is asymmetric: the aggregation half is well-formed (N09 → N11 → N13 → N17), but the decomposition half is shallow (PG1 fan-out k=2; PG2 fan-out k=2; serial Wave 2b/2c). **Why deliberate:** the input to prompt-graph is a *text artifact*, not a divisible problem. Deeper k-ary decomposition would split the text into pieces that must be re-joined — duplicating context cost and risking loss of cross-section coherence (e.g., a constraint in section X that references INVENTORY items first introduced in section Y). The aggregation half is where the value lives — synthesizing analysis blocks + contracts + INVENTORY into a single coherent enhanced output. If a future evolution motivates deeper decomposition, the natural site is N07 TechniqueGapAnalyst (split T1–T4 / T5–T8 / T9–T13 into PG2b sub-analyzers) — but no usage data currently motivates this. Asymmetry is the correct shape for a text-grounded GoT.
 
-17. **Mode coverage — five modes across two orthogonal axes (D10).** prompt-graph offers 5 modes (minimal 13 nodes / normal 19 / deep 20 / verbose 28 / deep-verbose 34) plus orthogonal `--quiet` and `--strict-verify`. Total effective configurations: 5 × 2 × 2 = 20. Two axes: depth (minimal/normal/deep — controls analysis + ideation depth) × passes (single/verbose — controls whether the multi-path synthesis tail runs). The jump from minimal to normal is +6 nodes (Wave 2 analysis + N12 coherence); normal → deep adds +1 (N10 anti-conformity) plus N13 KB-augmentation; verbose adds the multi-path tail (N20 + N27-N34, +9 nodes). **Why deliberate at 5 modes (vs more):** orthogonalizing depth × passes gives 6 cells, of which `--minimal --verbose` is excluded as conceptually incoherent (you don't multi-path-synthesize a minimal analysis); the remaining 5 cells each represent a meaningful tradeoff point. **Why no intermediate "fast-normal":** the highest-leverage delta in any depth jump is the addition of structural-novelty work (N10 anti-conformity for normal→deep; N20+multi-path for single→verbose); removing those would leave a mode that costs more than minimal but produces marginally more useful output.
+17. **Mode coverage — three modes is enough (D10).** prompt-graph offers minimal (13 nodes), normal (19 nodes), verbose (20 nodes), plus orthogonal `--quiet` and `--strict-verify`. The jump from minimal to normal is +6 nodes (Wave 2 analysis + N10 anti-conformity + N12 coherence). No intermediate "fast-normal" or "deep-minimal" mode is provided. **Why deliberate:** the highest-leverage delta from minimal to normal is anti-conformity (N10) — the contrarian re-read is what makes normal qualitatively different, not just quantitatively bigger. Removing N10 to provide an intermediate mode would remove most of the value of the upgrade, leaving a mode that costs more than minimal but produces marginally more useful output. Better to upgrade to normal directly. The orthogonal flags `--quiet` and `--strict-verify` provide the real dimensionality of mode-space (3 modes × 2 quiet × 2 strict = 12 effective modes) without fragmenting the depth axis. Reconsider only if usage data shows users want a depth-axis intermediate.
 
 18. **Capability-overhang stance (D6 + AC02).** Several Claude Code capabilities are unused by prompt-graph but compatible (no architectural conflict): `subagent_type` variants beyond default, ScheduleWakeup, CronCreate, `/loop`, PlanMode, Memory, Hooks, Background agents, Monitor, ToolSearch. v1.1 wires `subagent_type="prompt-architect"` (with general-purpose fallback) and SendMessage on E19 — the two highest-ROI items. The remaining capabilities are either (a) **deferred** because integration cost > current ROI (Memory for user mode preference, Hooks for downstream integrations) or (b) **reserved for v2+** because they presuppose features not yet present (ScheduleWakeup re-verification needs a "saved prompt drift" detector). The skill's design intent is to **harness** what materially improves quality + budget posture, not to use every capability for its own sake. Each unused capability has a documented disposition (used | deliberately excluded | unexploited); none are accidentally absent.
 
