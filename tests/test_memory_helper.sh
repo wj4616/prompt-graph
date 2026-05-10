@@ -46,5 +46,11 @@ test "$RC" = "0" || { echo "FAIL graceful-degrade write should exit 0 (got $RC)"
 chmod 755 "$TMP/readonly"  # cleanup
 echo "PASS write graceful-degrade (read-only dir)"
 
+# --- contract: empty profile produces empty stdout (consumer pattern from N01) ---
+mkdir -p "$TMP/empty-mem"
+EMPTY=$(python3 "$HELPER" read --memory-dir "$TMP/empty-mem" --key prompt-graph.user_profile 2>/dev/null || true)
+test -z "$EMPTY" || { echo "FAIL contract: empty profile must yield empty stdout"; exit 1; }
+echo "PASS contract: empty profile graceful-degrade"
+
 echo ""
 echo "ALL memory_helper.py TESTS PASSED"

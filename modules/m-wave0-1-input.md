@@ -37,6 +37,30 @@
    **Orthogonal combination (no conflict):**
    - `--deep --verbose` → deep-verbose mode. Both flags set. Pipeline runs full deep analysis + two-pass synthesis with expansion.
 
+**Step 1.5 — Memory read (Wave 0; graceful-degrade per AP-V6):**
+
+Resolve memory directory (audit F012 — derive slug from `$HOME` instead of hardcoding):
+1. If env var `PROMPT_GRAPH_MEMORY_DIR` is set, use that.
+2. Else compute the project-memory slug: `~/.claude/projects/$(echo "$HOME" | sed 's|/|-|g')/memory/`
+   - For user `myuser` with `$HOME=/home/myuser`: resolves to `~/.claude/projects/-home-myuser/memory/`.
+   - For other users: resolves correctly per their `$HOME`.
+3. If that path doesn't exist, fall back to `$HOME/.claude/skills/prompt-graph-v2/memory/` (skill-local fallback per brief §8).
+
+Then read the user profile via the Memory helper (this is one of two permitted Bash calls per HG3 sub-rule 3 item 4):
+
+```
+USER_PROFILE=$(python3 ~/.claude/skills/prompt-graph-v2/scripts/memory_helper.py read \
+  --memory-dir "$MEMORY_DIR" --key prompt-graph.user_profile 2>/dev/null || true)
+```
+
+If `USER_PROFILE` is non-empty: store it in orchestrator state for later announce-string injection. The string is consumed in step 3 (announce string emission).
+
+If `USER_PROFILE` is empty (Memory absent / unreadable / corrupt): proceed with empty profile. **No HALT, no user-facing error.** This is graceful-degradation per AP-V6.
+
+**Privacy note:** the user_profile may contain sensitive preferences. NEVER echo its raw content to stdout. The announce-string injection (added in step 3) is a one-line summary derived from preferred_modes / language only — never a full dump.
+
+**Announce-string profile-derived hint (AP-V29 disclaimer — not a topology rewrite):** if `USER_PROFILE` from this step is non-empty AND contains a `preferred_modes:` list AND the user did NOT pass an explicit mode flag, append a single advisory line to the announce string: `[advisory: based on prior runs, consider --<mode>]` where `<mode>` is the most-frequent entry in `preferred_modes`. This is advisory-only — does NOT change the resolved `mode_dispatch`. AP-V29: this is NOT a runtime topology rewrite; the announce string is part of N01's normal output, not a graph-edge mutation.
+
 2. **Input routing.** Classify the input (after flag stripping):
    - **Type A (plain text):** Inline text that is not a file path and does not contain XML with a recognized source meta tag. Pass through as normalized_input.
    - **Type B (prior prompt-epiphany output):** Input contains `<prompt><meta source="prompt-epiphany"/>` wrapper. Strip the outer `<prompt>` tags and `<meta source="prompt-epiphany"/>`; use inner content as normalized_input.
