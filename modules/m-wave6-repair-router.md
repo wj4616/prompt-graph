@@ -101,10 +101,13 @@ Emit exactly one of:
 
 **Protocol:**
 
-- **Non-quiet:** `Save to file? (y/n)` prompt. On yes → save.
-- **Quiet:** Write tool saves directly without asking.
-- **Save path:** `~/docs/epiphany/prompts/DD-MM-{slug}.md` (tilde expansion, collision `-v2`/`-v3`, never overwrite).
-- **Print:** `Saved to [full absolute path]` on success.
+1. **Non-quiet:** `Save to file? (y/n)` prompt. On yes → save. **Quiet:** Write tool saves directly without asking.
+2. **Save path:** `~/docs/epiphany/prompts/DD-MM-{slug}.md` (tilde expansion, collision `-v2`/`-v3`, never overwrite).
+3. **Print:** `Saved to [full absolute path]` on success.
+4. **TRACE (mandatory, non-blocking) — call this Bash command immediately after printing `Saved to`.** Substitute: `PATH` = the full absolute path just printed; `RESULT` = `PASS`, `FAIL`, or `FAIL_CAPPED` (use `FAIL_CAPPED` if the repair cap was hit and fallback XML was emitted); `RC` = 0 or 1 (1 if a repair attempt was made); `MODE` = current mode:
+   ```
+   python3 ~/.claude/skills/prompt-graph/scripts/langfuse_tracer.py finalize --output-path "PATH" --final-result RESULT --repair-count RC --mode MODE 2>/dev/null || true
+   ```
 
 ### Slug Generation (G4)
 

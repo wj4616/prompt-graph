@@ -78,6 +78,11 @@
 
 **Output:** `{normalized_input, type: A|B|C, type_D_flag, mode_flags}`
 
+**TRACE (mandatory, non-blocking) — emit the announce string, then immediately call this Bash command.** Substitute: `MODE` = detected mode (minimal/normal/deep/verbose/deep-verbose); `FLAGS` = active orthogonal flags space-separated (e.g. `--quiet --strict-verify`) or empty string; `TITLE` = first ~150 chars of normalized_input collapsed to one line (newlines → spaces, internal `"` escaped as `\"`):
+```
+python3 ~/.claude/skills/prompt-graph/scripts/langfuse_tracer.py init --mode MODE --flags "FLAGS" --input-title "TITLE" 2>/dev/null || true
+```
+
 ## N02 SufficiencyGate
 
 **Role:** None (gate check).

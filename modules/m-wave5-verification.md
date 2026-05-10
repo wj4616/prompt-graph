@@ -2,7 +2,7 @@
 
 **Nodes:** N14 PreservationVerifier, N15 SemanticFidelityChecker, N16 QualityGate
 **Context:** Inline, orchestrator — three role-switched blocks in fixed order (N14 → N15 → N16).
-**Marker contract:** Wraps `=== VERIFICATION REPORTS BEGIN ===` ... `=== VERIFICATION REPORTS END ===`. In verbose Wave 8 re-verify: `=== VERIFICATION REPORTS (pass=2) BEGIN ===` instead.
+**Marker contract:** Wraps `=== VERIFICATION REPORTS BEGIN ===` ... `=== VERIFICATION REPORTS END ===`. In verbose Wave 8 re-verify: `=== VERIFICATION REPORTS (pass=2) BEGIN ===` instead. **After emitting the closing END marker, execute the Closing Transition (including the mandatory trace step).**
 **Edge inputs:** E05 (INVENTORY to N14, N16), E04c (INTENT to N15), E04b (INTENT to N16), E15 (draft_xml fan-out to all three), E41 (analysis blocks to N16, normal/deep/verbose/deep-verbose). In deep/verbose/deep-verbose modes: E88 (hardened_xml from N34 AntiFragilityNode) replaces E15.
 
 **v2 change — 12 checks consolidated to 7:**
@@ -149,4 +149,9 @@ Output structure inside `=== VERIFICATION REPORTS BEGIN ===` ... `=== VERIFICATI
 
 ## Closing Transition
 
-"Verification concluded. You are no longer in verifier role. Routing aggregated reports to N17."
+1. Emit: "Verification concluded. You are no longer in verifier role. Routing aggregated reports to N17."
+2. **TRACE (mandatory, non-blocking) — call this Bash command now.** Substitute actual results: `PRES` = PASS or FAIL from N14 (checks 6a–6b); `FID` = PASS or FAIL from N15 (check 6f); `QUAL` = PASS or FAIL from N16 (checks 6h–6l); `PN` = 1 for Wave 5 first pass, 2 for Wave 8 re-verification:
+   ```
+   python3 ~/.claude/skills/prompt-graph/scripts/langfuse_tracer.py verification --preservation PRES --fidelity FID --quality QUAL --pass-number PN 2>/dev/null || true
+   ```
+3. Proceed to N17 RepairRouter.
