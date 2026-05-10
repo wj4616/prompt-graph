@@ -31,7 +31,8 @@ sed -n '/## N15/,/## N16/p' "$W5" | grep -qE '(Exec-type gate|mode-conditional|s
 echo "PASS N15 mode-conditional declared"
 
 # 5. m-wave7-9 must declare mode-conditional exec_type for N20
-sed -n '/## N20/,/$/p' "$W79" | grep -qE '(spawn under .*--verbose|mode-conditional|Exec-type gate)' \
+# Use awk to extract from the N20 heading to the next ## heading or EOF.
+awk '/^## N20/{f=1; next} /^## /{f=0} f' "$W79" | grep -qE '(spawn under .*--verbose|mode-conditional|Exec-type gate)' \
   || { echo "FAIL: N20 mode-conditional protocol missing"; exit 1; }
 echo "PASS N20 mode-conditional declared"
 
