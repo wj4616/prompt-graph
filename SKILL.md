@@ -1239,11 +1239,9 @@ Verification failed on checks: [list]. To retry with a better outcome:
 
 ### 3-tier architecture
 
-| Tier | Source | Availability | Latency | Failure mode |
-|---|---|---|---|---|
-| **Tier 1** | Embedded KB Snippets 1–6 in `m-wave4-synthesis.md` and `m-wave4.5b-multi-synthesis.md` | Always (static, shipped in skill files) | 0ms | None — static text |
-| **Tier 2** | Dify MCP: `mcp__dify-thought-kb__ToT-GoT-Cot-KB-retrieval` and `mcp__dify-cognitive-kb__cognitive-research-kb-dify` | Non-blocking — pipelines fire query but proceed with whatever is available at decision time. KB is advisor, not gate. | Variable (network) | Timeout / error / empty → fall back to Tier 1 heuristic or embedded snippet |
-| **Tier 3** | KB-directed synthesis agents (N28–N32 in verbose/deep-verbose modes). Agents receive both Tier 1 snippets AND Tier 2 query results in their spawn prompts. | Available when Tier 2 query succeeded AND N27 selected the relevant agent. Agents run regardless of KB state — Tier 2 absence means they run on Tier 1 alone. | Agent spawn overhead (parallel, wall-clock ≈ 1) | Agent runs on Tier 1 only — gracefully degraded, not failed |
+- **Tier 1 (embedded, always available):** see `modules/kb-snippets.md` — the standalone-sufficient snippet bundle (HG-04 closure, brief §11). Every named "KB Snippet N" reference in this file and in `modules/m-*.md` resolves to a section there. The synthesis module (`m-wave4-synthesis.md`) embeds these inline so a Wave-4 spawn prompt carries them; both files MUST be kept in sync. Standalone-sufficient: 0ms latency, no network, no failure mode.
+- **Tier 2 (Dify MCP cognitive-research-kb):** advisory; query opportunistically when MCP server reachable. Never gating — timeout / error / empty falls back to Tier 1 heuristic or embedded snippet.
+- **Tier 3 (Dify MCP ToT-GoT-CoT KB):** advisory; same discipline as Tier 2. KB-directed synthesis agents (N28–N32 in verbose/deep-verbose modes) receive both Tier 1 snippets AND Tier 2/3 query results when available; they run regardless of KB state — Tier 2/3 absence means they run on Tier 1 alone (gracefully degraded, not failed).
 
 ### KB query integration points
 
