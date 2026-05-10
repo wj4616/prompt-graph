@@ -392,7 +392,7 @@ V2_FAIL=0
 echo
 header "v2 ADDITIONAL TESTS (W1 + W2 + W3)"
 V2_TESTS_DIR="$(dirname "$(realpath "$0")")"
-for v2t in test_memory_helper.sh test_learn_shape.sh test_advisory_threshold.sh \
+for v2t in test_invariants.sh test_memory_helper.sh test_learn_shape.sh test_advisory_threshold.sh \
            test_strict_verify_full_dispatch.sh test_n35_thresholds.sh test_apv29_graph_trace.sh; do
   if [ -x "$V2_TESTS_DIR/$v2t" ]; then
     if "$V2_TESTS_DIR/$v2t" >/dev/null 2>&1; then

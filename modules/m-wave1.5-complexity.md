@@ -40,6 +40,19 @@
 
    The thresholds are calibration constants — see SKILL.md §"Calibration Points". Mutation signals are advisory-only when the user has passed an explicit mode flag (e.g., `--minimal` overrides `promote_minimal_to_normal`); the user flag wins. Detection-pattern operationalization per brief §9a EDGE-MIND-CHANGE: emit `topology_advisory` as advisory text only — never silently rewrite the user's mode.
 
+   **Mode-suggestion table (I-03; advisory-only, non-binding):**
+
+   When N35's measurements suggest a more-amplified mode than the user's resolved `mode_dispatch`, emit a one-line advisory through E52 to N01 announce string. The line is informational — NEVER changes the resolved mode. Suppressed when `--quiet` is set OR when suggested mode == resolved mode.
+
+   | Condition | Suggested mode | Advisory line |
+   |---|---|---|
+   | INVENTORY density > 12 AND user passed no depth flag | `--normal` (current default) | `[N35 advisory] INVENTORY density NN — consider --deep next run for cognitive amplification` |
+   | INVENTORY density > 18 AND mode_dispatch in {minimal, normal} | `--deep` | `[N35 advisory] INVENTORY density NN exceeds 18 — N34 will anti-fragility-spawn under --deep` |
+   | named-entity xrefs ≥ 3 AND tone contradiction ≥ 1 AND mode_dispatch in {minimal, normal} | `--deep` | `[N35 advisory] novelty signal detected (xrefs=NN, tone-contradictions=MM) — consider --deep for anti-conformity pass` |
+   | constraint interdependence ≥ 4 AND mode_dispatch != verbose AND mode_dispatch != deep-verbose | `--verbose` | `[N35 advisory] constraint interdependence NN — consider --verbose for multi-path synthesis` |
+
+   When multiple advisory rules fire, emit at most ONE line — pick the rule whose suggested mode is closest to the user's current mode along the depth×passes axis (i.e., prefer the smallest mode bump). Same E52 retry-cap=1 applies.
+
 3. **Emit declarative signals (declarative — never orchestrator-internal mutation):**
 
    All mode mutations MUST be expressed as values written to declared graph edges (E52, E53, E71). Per AP-V29: the orchestrator does NOT rewrite topology in-flight — it just reads the signal and routes per declared static edges. Anything resembling "rewrite topology" or "orchestrator-internal mutation" is AP-V29-disallowed and MUST NOT appear in module text without a disclaimer.
