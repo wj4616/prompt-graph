@@ -468,6 +468,32 @@ def cmd_repair_triggered(args: argparse.Namespace) -> None:
     _write_state(state)
 
 
+def cmd_advisory(args: argparse.Namespace) -> None:
+    """Emit a one-line advisory string when 3+ prior runs show persistent
+    repair_triggered or af_hard_breaks > 0. Inputs are pre-aggregated counts
+    passed by the orchestrator from Langfuse trace queries; this subcommand
+    does NOT itself query Langfuse — that's the orchestrator's job (and may
+    silently fail without affecting the pipeline).
+
+    Per AP-V6: this subcommand never raises and never blocks. Called via the
+    main() try/except — any exception is swallowed to stderr.
+    """
+    threshold = 3
+    if args.repair_runs >= threshold:
+        print(
+            f"[prompt-graph-v2 advisory] repair has triggered in {args.repair_runs} "
+            f"recent runs — consider running with --strict-verify=full"
+        )
+        return
+    if args.af_runs >= threshold:
+        print(
+            f"[prompt-graph-v2 advisory] anti-fragility hard-breaks observed in "
+            f"{args.af_runs} recent runs — consider running with --deep"
+        )
+        return
+    # Below threshold: silent.
+
+
 def cmd_finalize(args: argparse.Namespace) -> None:
     cfg = _load_config()
     lf = _get_langfuse(cfg)
@@ -586,6 +612,10 @@ def main() -> None:
     p_fin.add_argument("--repair-count",  default=0, type=int)
     p_fin.add_argument("--mode",          default="normal")
 
+    p_adv = sub.add_parser("advisory")
+    p_adv.add_argument("--repair-runs", dest="repair_runs", type=int, default=0)
+    p_adv.add_argument("--af-runs",     dest="af_runs",     type=int, default=0)
+
     args = p.parse_args()
 
     dispatch = {
@@ -596,6 +626,7 @@ def main() -> None:
         "aggregation":      cmd_aggregation,
         "repair-triggered": cmd_repair_triggered,
         "finalize":         cmd_finalize,
+        "advisory":         cmd_advisory,
     }
     try:
         dispatch[args.cmd](args)
