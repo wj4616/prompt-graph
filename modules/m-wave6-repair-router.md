@@ -120,9 +120,9 @@ a. Construct the topology_adjustments YAML from this run's runtime signals:
    mode: <resolved mode_dispatch>
    flags: <list of orthogonal flags>
    inventory_size: <count from N04>
-   topology_advisory: <value emitted by N35 if any, else null>
-   mode_mutation_signal: <value emitted by N35 if any, else null>
-   repair_triggered: <true if E24/E47/E49/E50 fired this run, else false>
+   topology_advisory: <value emitted by N35 via E52 if any, else null>
+   mode_mutation_signal: <value emitted by N35 via E53 if any, else null>
+   repair_triggered: <true if E19 repair back-edge fired this run, else false>
    af_hard_breaks: <count from N34, else 0>
    ```
 
