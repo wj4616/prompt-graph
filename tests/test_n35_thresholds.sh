@@ -43,5 +43,11 @@ grep -qE 'm-wave1\.5-complexity\.md' "$SKILL" \
   || { echo "FAIL: module-loading reference missing"; exit 1; }
 echo "PASS module-loading reference present"
 
+# 11. N04 module must list N35 in fan-out
+W01="$HOME/.claude/skills/prompt-graph-v2/modules/m-wave0-1-input.md"
+awk '/^## N04/{f=1; next} /^## N0[5-9]/{f=0} f' "$W01" | grep -qE 'N35|consumers' \
+  || { echo "FAIL: N04 fan-out missing N35"; exit 1; }
+echo "PASS N04 fan-out includes N35"
+
 echo ""
 echo "ALL N35 module structural tests PASSED"

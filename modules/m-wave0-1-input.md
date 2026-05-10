@@ -172,6 +172,17 @@ If the input is Type C (prior prompt-cog output) containing an 8-key INVENTORY w
 
 **Output:** INVENTORY YAML (20-key schema).
 
+**Out-edge fan (v2):** N04 broadcasts inventory_yaml to 5 consumers via the AND-broadcast pattern (the count is derived from SKILL.md Section 2 Edge Table; sources of truth are E05, E92, E51):
+- N13 SynthesisAgent (Wave 4 — canonical AGG-N13 input; via E05)
+- N14 PreservationVerifier (Wave 5; via E05)
+- N16 QualityGate (Wave 5; via E05)
+- N27 KBBranchRouter (Wave 4 — branch planning input; via E92, verbose/deep-verbose only)
+- N35 ComplexityAssessment (Wave 1.5; consumes inventory_yaml after N04 completes; via E51) — **NEW edge in v2**
+
+**Spec-source resolution note (audit F003):** the vNext spec described N04's fan as 7–8 consumers including N05/N06/N34, but the actual v2.0 edge table (Section 2) does not declare those edges. Plan's resolution was to treat the runtime-binding side (incoming-branches lists at AGG nodes) as authoritative; on inspection the edge table contains only E05 (N04 → N13/N14/N16) and E92 (N04 → N27). With W4 dropped (no N26) and v2 adding only E51 (N04 → N35), final consumer set = {N13, N14, N16, N27, N35} = 5 consumers. If a future revision adds N04→N34 explicitly to the edge table (e.g., to feed N34 inventory for adversarial reasoning), update this list and the count accordingly.
+
+If N04 fails (HG1 sufficiency_pass=false): pipeline halts at N02; N35 is never reached. If N04 succeeds: E51 fires unconditionally.
+
 **Role continuation note:** The analyst role persists into Wave 2 (for normal/deep/verbose/deep-verbose modes). In minimal mode, the analyst role concludes here and the ANALYST OUTPUT END marker closes.
 
 ## File-path-read failure halt
