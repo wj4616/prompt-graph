@@ -109,6 +109,36 @@ Emit exactly one of:
    python3 ~/.claude/skills/prompt-graph/scripts/langfuse_tracer.py finalize --output-path "PATH" --final-result RESULT --repair-count RC --mode MODE 2>/dev/null || true
    ```
 
+5. **`--learn` post-run topology_adjustments write (W3; only when `learn` flag is set):**
+
+After successful Write to disk and the "Saved to [path]" confirmation:
+
+a. Construct the topology_adjustments YAML from this run's runtime signals:
+   ```yaml
+   schema_version: v1
+   timestamp: <ISO-8601>
+   mode: <resolved mode_dispatch>
+   flags: <list of orthogonal flags>
+   inventory_size: <count from N04>
+   topology_advisory: <value emitted by N35 if any, else null>
+   mode_mutation_signal: <value emitted by N35 if any, else null>
+   repair_triggered: <true if E24/E47/E49/E50 fired this run, else false>
+   af_hard_breaks: <count from N34, else 0>
+   ```
+
+b. Resolve memory directory using the same logic as N01 step 1.5 (env `PROMPT_GRAPH_MEMORY_DIR` → 2026 project memory `~/.claude/projects/$(echo "$HOME" | sed 's|/|-|g')/memory/` → skill-local fallback `$HOME/.claude/skills/prompt-graph-v2/memory/`).
+
+c. Write via the Memory helper (this is the permitted second Bash call per HG3 sub-rule 3 item 4):
+   ```
+   python3 ~/.claude/skills/prompt-graph-v2/scripts/memory_helper.py write \
+     --memory-dir "$MEMORY_DIR" --key topology_adjustments \
+     --value "$YAML" 2>/dev/null || true
+   ```
+
+d. Memory write failure is silent per AP-V6. The pipeline already succeeded at N18; emission of the final output to the user is not affected.
+
+Without `--learn`: NO memory write at end-of-run. Skip this step entirely.
+
 ### Slug Generation (G4)
 
 Generate a 3–5 word kebab-case slug for the filename.
