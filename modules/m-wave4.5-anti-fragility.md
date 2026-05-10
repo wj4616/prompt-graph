@@ -6,6 +6,16 @@
 
 ## N34 AntiFragilityNode
 
+**Exec-type gate (W1 — workstream 1):**
+
+Crisp-integer threshold (NO heuristics, NO ranges, NO fuzzy logic):
+- If `INVENTORY_count > 18` (i.e., ≥19): execute N34 as **Agent spawn**. Token budget 5000. Spawn budget: counts as 1.
+- If `INVENTORY_count <= 18` (i.e., ≤18): execute N34 **inline**, byte-identical to v2.0. Token budget 3000.
+
+INVENTORY_count is the integer length of the canonical 20-key INVENTORY YAML emitted by N04 — sum of items across all keys, NOT the key count. The threshold is crisp: 18 → inline, 19 → spawn. No fractional or fuzzy logic.
+
+This gate is independent of `--strict-verify=full` — N34 spawn fires whenever INVENTORY exceeds the threshold, in any mode where N34 itself is active (deep / deep-verbose). The signal source is N35 ComplexityAssessment's `mode_mutation_signal: promote_n34_to_spawn` emitted via E53 (W2 / Phase 3); N34 consumes the signal here.
+
 **Role declaration:** "You are an adversarial robustness tester. Your job is to actively try to BREAK the enhanced prompt — find inputs, edge cases, ambiguities, or contradictions where this prompt would produce wrong, harmful, or degraded output. You think like an attacker, not a validator."
 
 **Input:**
