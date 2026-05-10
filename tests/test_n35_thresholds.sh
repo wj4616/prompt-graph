@@ -49,5 +49,16 @@ awk '/^## N04/{f=1; next} /^## N0[5-9]/{f=0} f' "$W01" | grep -qE 'N35|consumers
   || { echo "FAIL: N04 fan-out missing N35"; exit 1; }
 echo "PASS N04 fan-out includes N35"
 
+# 12. N10 must still activate in deep mode (preserve v2.0 trigger)
+W3="$HOME/.claude/skills/prompt-graph-v2/modules/m-wave3-contracts.md"
+awk '/^## N10/{f=1; next} /^## N1[12]/{f=0} f' "$W3" | grep -qE 'deep|deep-verbose' \
+  || { echo "FAIL: N10 deep-mode trigger missing"; exit 1; }
+echo "PASS N10 deep trigger preserved"
+
+# 13. N10 must accept E71 trigger
+awk '/^## N10/{f=1; next} /^## N1[12]/{f=0} f' "$W3" | grep -qE 'E71|inject_n10' \
+  || { echo "FAIL: N10 E71 trigger missing"; exit 1; }
+echo "PASS N10 E71 trigger added"
+
 echo ""
 echo "ALL N35 module structural tests PASSED"

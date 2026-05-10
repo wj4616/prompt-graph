@@ -32,7 +32,13 @@
 
 ## N10 AntiConformityPass
 
-**Active modes:** deep, deep-verbose only (skipped in minimal, normal, and plain verbose — verbose's first pass uses normal-mode contracts; only the deep depth flag activates anti-conformity). Anti-conformity with novelty gate O3 is a premium cognitive feature — it costs an extra inference and is gated behind the depth threshold. Normal/verbose mode gets standard T1-T13 sequential contracts; deep/deep-verbose get the lateral-thinking pass.
+**Activation (v2):** N10 runs when ANY of these conditions hold:
+- mode is `deep` or `deep-verbose` (v2.0 baseline preserved — premium cognitive feature, costs an extra inference, gated behind the depth threshold)
+- N35 emitted `mode_mutation_signal: inject_n10` via E71 forward-conditional edge (NEW v2 — novelty signal in any mode; emitted when N35 dimension c ≥ 3 AND dimension d ≥ 1)
+
+When activated outside deep modes (i.e., E71 trigger only): use the lighter-weight inline novelty pass — single counter-stance generation, no KB query. Keep token budget bounded at 3000.
+
+In v2.0 — and still in v2 default-mode behavior — N10 is **skipped** in minimal, normal, and plain verbose unless the E71 trigger fires. Normal/verbose mode gets standard T1-T13 sequential contracts; deep/deep-verbose get the lateral-thinking pass.
 
 **Input:** `{normalized_input, primary_contracts}`
 
