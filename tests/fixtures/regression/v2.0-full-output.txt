@@ -1,0 +1,98 @@
+
+[1m=== STATIC STRUCTURAL CHECKS ===[0m
+  [32m✓[0m [S] frontmatter: name: prompt-graph
+  [32m✓[0m [S] frontmatter: version present
+  [32m✓[0m [S] frontmatter: triggers list
+  [32m✓[0m [S] Section 1 Node Registry header
+  [32m✓[0m [S] Section 2 Edge/Channel Table header
+  [32m✓[0m [S] Section 3 Mode Matrix header
+  [32m✓[0m [S] Section 4 Parallel Groups header
+  [32m✓[0m [S] Section 5 Optimizations header
+  [32m✓[0m [S] Section 6 GoT Controller header
+  [32m✓[0m [S] Section 7 Pipeline Narrative header
+  [32m✓[0m [S] Section 8 Smoke Test Checklist header
+  [32m✓[0m [S] module file exists: m-wave0-1-input.md
+  [32m✓[0m [S] module file exists: m-wave2-analysis.md
+  [32m✓[0m [S] module file exists: m-wave3-contracts.md
+  [32m✓[0m [S] module file exists: m-wave4-synthesis.md
+  [32m✓[0m [S] module file exists: m-wave5-verification.md
+  [32m✓[0m [S] module file exists: m-wave6-repair-router.md
+  [32m✓[0m [S] module file exists: m-wave7-9-verbose-expansion.md
+  [32m✓[0m [S] module file exists: m-wave4.5a-kb-branch.md
+  [32m✓[0m [S] module file exists: m-wave4.5b-multi-synthesis.md
+  [32m✓[0m [S] module file exists: m-wave4.5-aggregation.md
+  [32m✓[0m [S] module file exists: m-wave4.5-anti-fragility.md
+  [32m✓[0m [S] Section 3 mentions minimal-mode node list
+  [32m✓[0m [S] VERIFICATION REPORTS sub-block: PRESERVATION
+  [32m✓[0m [S] VERIFICATION REPORTS sub-block: FIDELITY
+  [32m✓[0m [S] VERIFICATION REPORTS sub-block: QUALITY
+  [32m✓[0m [S] Hard Gate 1 SUFFICIENCY
+  [32m✓[0m [S] Hard Gate 2 ZERO INFORMATION LOSS
+  [32m✓[0m [S] Hard Gate 3 PROMPT CONTENT ONLY
+  [32m✓[0m [S] Appendix A INVENTORY
+  [32m✓[0m [S] Appendix B Contract
+  [32m✓[0m [S] Appendix C Repair
+  [32m✓[0m [S] Design Notes section
+  [32m✓[0m [S] O6 repair cap
+  [32m✓[0m [S] O9 technique ceiling
+  [32m✓[0m [S] O11 INVENTORY coverage check defined
+  [32m✓[0m [S] O12 SendMessage-first repair defined
+  [32m✓[0m [S] O13 typed repair routing defined
+  [32m✓[0m [S] Section 1.5 Aggregation Policies present
+  [32m✓[0m [S] --strict-verify flag in trigger conditions
+  [32m✓[0m [S] --strict-verify announce string defined
+  [32m✓[0m [S] Strict-verify advisory text
+  [32m✓[0m [S] synthesis_agent_id in N17 state
+  [32m✓[0m [S] failure_family classification
+  [32m✓[0m [S] Failure-family Family-A documented
+  [32m✓[0m [S] subagent_type prompt-architect documented
+  [32m✓[0m [S] Shipped & Roadmap header present
+  [32m✓[0m [S] v1.1 Design Note 16 (topology asymmetry)
+  [32m✓[0m [S] v1.1 Design Note 17 (mode coverage)
+  [32m✓[0m [S] v1.1 Design Note 18 (capability-overhang)
+  [32m✓[0m [S] KB Snippet 4 present in m-wave4-synthesis.md
+  [32m✓[0m [S] O11 pre-spawn item present in m-wave4-synthesis.md
+  [32m✓[0m [S] O12 SendMessage protocol present in m-wave6-repair-router.md
+  [32m✓[0m [S] N16 agent-separated path present in m-wave5-verification.md
+  [32m✓[0m [S] --strict-verify flag detection present in m-wave0-1-input.md
+  [32m✓[0m [S] Test G: FAIL-capped signal defined
+  [32m✓[0m [S] Test G: recovery guidance defined
+  [32m✓[0m [S] Test O: REPAIRING signal defined
+  [32m✓[0m [S] Test P: FAIL annotation template defined
+  [32m✓[0m [S] --plan deferred halt message defined
+  [32m✓[0m [S] Cross-Wave Rules table header
+  [32m✓[0m [S] Cross-Wave: INVENTORY verbatim contract
+  [32m✓[0m [S] Cross-Wave: channel marker discipline
+  [32m✓[0m [S] Cross-Wave: repair signal schema binding
+  [32m✓[0m [S] KB BRANCH PLAN marker pair defined
+  [32m✓[0m [S] META AGGREGATION marker pair defined
+  [32m✓[0m [S] ANTI-FRAGILITY REPORT marker pair defined
+  [32m✓[0m [S] Deep mode announce defined
+  [32m✓[0m [S] Deep+verbose announce defined
+  [32m✓[0m [S] Test V: minimal+deep conflict message defined
+  [32m✓[0m [S] O14 budget downgrade defined
+  [32m✓[0m [S] Appendix D KB Integration header
+  [32m✓[0m [S] Appendix E Multi-Path Synthesis header
+  [32m✓[0m [S] Appendix F Verification Cross-Reference header
+  [32m✓[0m [S] Design Note 19 (3-tier KB integration)
+  [32m✓[0m [S] Design Note 20 (GoT double-tree)
+  [32m✓[0m [S] Design Note 21 (anti-fragility)
+  [32m✓[0m [S] Design Note 22 (7-check consolidation)
+  [32m✓[0m [S] Edge count updated (49 edges)
+  [32m✓[0m [S] Section 3 deep mode column present
+  [32m✓[0m [S] Section 3 deep-verbose column present
+  [32m✓[0m [S] PG5 parallel group defined
+  [32m✓[0m [S] Wave 4.5a KB Branch Routing narrative
+  [32m✓[0m [S] Wave 4.5b Multi-Path Parallel Synthesis narrative
+  [32m✓[0m [S] Wave 4.5c Meta-Aggregation narrative
+  [32m✓[0m [S] Wave 4.5d Anti-Fragility narrative
+  [32m✓[0m [S] N10 active in deep mode
+  [32m✓[0m [S] N10 mode column includes deep
+  [32m✓[0m [S] N10 NOT listed in plain verbose
+  [32m✓[0m [S] Section 6 deep path defined
+  [32m✓[0m [S] Section 6 deep-verbose path defined
+
+[1m=== SUMMARY ===[0m
+  [1mStatic:[0m    91 passed, 0 failed
+  [1mEssential:[0m 0 passed, 0 failed
+  [1mProtocol:[0m  0 passed, 0 failed
