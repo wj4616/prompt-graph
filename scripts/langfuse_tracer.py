@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""langfuse_tracer.py — Langfuse tracing for prompt-graph skill runs.
+"""langfuse_tracer.py — Langfuse tracing for prompt-graph-v2 skill runs.
 
 Subcommands (all exit 0 on soft failure so they never block the pipeline):
 
@@ -18,7 +18,7 @@ Subcommands (all exit 0 on soft failure so they never block the pipeline):
   finalize       --output-path <path> --final-result <PASS|FAIL|FAIL_CAPPED>
                  --repair-count <0|1> --mode <mode>
 
-Config: ~/.claude/skills/prompt-graph/langfuse.env
+Config: ~/.claude/skills/prompt-graph-v2/langfuse.env (MUST be mode 0600)
   PROMPT_GRAPH_LANGFUSE_PUBLIC_KEY=pk-lf-...
   PROMPT_GRAPH_LANGFUSE_SECRET_KEY=sk-lf-...
   PROMPT_GRAPH_LANGFUSE_HOST=http://localhost:3000
@@ -145,9 +145,9 @@ def cmd_init(args: argparse.Namespace) -> None:
     flags = (args.flags or "").strip()
 
     session_id = str(uuid.uuid4())
-    trace_id = Langfuse.create_trace_id(seed=f"prompt-graph-{session_id}")
+    trace_id = Langfuse.create_trace_id(seed=f"prompt-graph-v2-{session_id}")
 
-    tags = ["skill:prompt-graph", f"mode:{mode}"]
+    tags = ["skill:prompt-graph-v2", f"mode:{mode}"]
     for flag_token in flags.split():
         tags.append(f"flag:{flag_token.lstrip('-')}")
 
@@ -157,7 +157,7 @@ def cmd_init(args: argparse.Namespace) -> None:
         "timestamp": _now_iso(),
         "body": {
             "id": trace_id,
-            "name": f"prompt-graph: {slug[:60]}",
+            "name": f"prompt-graph-v2: {slug[:60]}",
             "tags": tags,
             "metadata": {
                 "session_id": session_id,
@@ -568,7 +568,7 @@ def cmd_finalize(args: argparse.Namespace) -> None:
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Langfuse tracer for prompt-graph")
+    p = argparse.ArgumentParser(description="Langfuse tracer for prompt-graph-v2")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     p_init = sub.add_parser("init")
@@ -631,7 +631,14 @@ def main() -> None:
     try:
         dispatch[args.cmd](args)
     except Exception as exc:
-        print(f"[langfuse_tracer] error (non-fatal): {exc}", file=sys.stderr)
+        # Scrub credential fragments from exception messages — requests/urllib3
+        # exception types embed PreparedRequest.__str__ which includes the
+        # Authorization header. Print exception type only; suppress the message.
+        msg = str(exc)
+        msg = re.sub(r'(Basic|Bearer)\s+[A-Za-z0-9+/=._-]+', r'\1 <REDACTED>', msg)
+        msg = re.sub(r'(pk-lf-|sk-lf-)[A-Za-z0-9-]+', r'\1<REDACTED>', msg)
+        msg = re.sub(r'Authorization[\'"]?\s*[:=]\s*[\'"]?[^\'",}\s]+', 'Authorization=<REDACTED>', msg)
+        print(f"[langfuse_tracer] error (non-fatal): {type(exc).__name__}: {msg[:200]}", file=sys.stderr)
 
 
 if __name__ == "__main__":

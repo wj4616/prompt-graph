@@ -20,24 +20,55 @@ import os
 import sys
 
 
+def _validate_key(key):
+    """Reject keys containing path-traversal patterns. Memory keys are flat
+    filenames by contract — anything containing '/', '\\', or '..' is a
+    misuse and must be rejected at the boundary."""
+    if "/" in key or "\\" in key or ".." in key:
+        return False
+    return True
+
+
 def cmd_read(args):
+    if not _validate_key(args.key):
+        return  # silent graceful-degrade
     path = os.path.join(args.memory_dir, args.key)
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        # O_NOFOLLOW guards against symlink-target reads (e.g., a malicious
+        # symlink to ~/.ssh/id_rsa). On Linux this triggers ELOOP and lands
+        # in the OSError graceful-degrade path.
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+    except (FileNotFoundError, IsADirectoryError, PermissionError, OSError):
+        return  # silent graceful-degrade
+    try:
+        with os.fdopen(fd, "r", encoding="utf-8") as f:
             content = f.read()
-    except (FileNotFoundError, IsADirectoryError, PermissionError, OSError, UnicodeDecodeError):
+    except (PermissionError, OSError, UnicodeDecodeError):
         return  # silent graceful-degrade
     sys.stdout.write(content)
 
 
 def cmd_write(args):
+    if not _validate_key(args.key):
+        return  # silent graceful-degrade
     try:
         os.makedirs(args.memory_dir, exist_ok=True)
     except (PermissionError, OSError):
         return  # silent graceful-degrade
     path = os.path.join(args.memory_dir, args.key)
     try:
-        with open(path, "w", encoding="utf-8") as f:
+        # O_NOFOLLOW + mode 0600. If a hostile symlink exists at `path`, this
+        # raises ELOOP and we graceful-degrade. Mode 0600 protects the file
+        # body which may carry sensitive preferences.
+        fd = os.open(
+            path,
+            os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW,
+            0o600,
+        )
+    except (PermissionError, OSError):
+        return  # silent graceful-degrade
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(args.value)
             if not args.value.endswith("\n"):
                 f.write("\n")
