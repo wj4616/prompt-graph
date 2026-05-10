@@ -385,11 +385,34 @@ case "$MODE" in
         ;;
 esac
 
+# ── v2 additions ─────────────────────────────────────────────────────────────
+# Run v2-specific structural tests after the v2.0 baseline checks. Each test
+# is independent and exits 0 on PASS. Failure here is a v2 regression.
+V2_FAIL=0
+echo
+header "v2 ADDITIONAL TESTS (W1 + W2 + W3)"
+V2_TESTS_DIR="$(dirname "$(realpath "$0")")"
+for v2t in test_memory_helper.sh test_learn_shape.sh test_advisory_threshold.sh \
+           test_strict_verify_full_dispatch.sh test_n35_thresholds.sh test_apv29_graph_trace.sh; do
+  if [ -x "$V2_TESTS_DIR/$v2t" ]; then
+    if "$V2_TESTS_DIR/$v2t" >/dev/null 2>&1; then
+      printf "  ${G}✓${N} [V2] %s\n" "$v2t"
+    else
+      printf "  ${R}✗${N} [V2] %s\n" "$v2t"
+      V2_FAIL=$((V2_FAIL + 1))
+    fi
+  else
+    printf "  ${Y}-${N} [V2] %s (missing or not executable)\n" "$v2t"
+    V2_FAIL=$((V2_FAIL + 1))
+  fi
+done
+
 # Summary
 header "SUMMARY"
 printf "  ${B}Static:${N}    %d passed, %d failed\n" "$PASS_S" "$FAIL_S"
 printf "  ${B}Essential:${N} %d passed, %d failed\n" "$PASS_E" "$FAIL_E"
 printf "  ${B}Protocol:${N}  %d passed, %d failed\n" "$PASS_P" "$FAIL_P"
+printf "  ${B}v2 tests:${N}  %d failed\n" "$V2_FAIL"
 
-# Exit code: 0 if essential + static pass
-[[ $FAIL_S -eq 0 && $FAIL_E -eq 0 ]] && exit 0 || exit 1
+# Exit code: 0 if essential + static + v2 all pass
+[[ $FAIL_S -eq 0 && $FAIL_E -eq 0 && $V2_FAIL -eq 0 ]] && exit 0 || exit 1
