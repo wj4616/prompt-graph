@@ -302,7 +302,7 @@ The disambiguation heuristic: an unknown token that precedes a sentence fragment
 ## Pipeline Diagram (deep-verbose path — maximum topology)
 
 ```
-Wave 0:  N01 (InputRouter)
+Wave 0:  N01 (InputRouter)  ◄─── E52 back-edge ─── N35 topology_advisory (one-shot)
           │
           ▼  [GoT controller decision point — selects wave plan by mode]
 Wave 1:  N02 (SufficiencyGate)
@@ -311,7 +311,13 @@ Wave 1:  N02 (SufficiencyGate)
           │        ┌──────┴──────┐    │
           ▼        ▼             ▼    │
          N03 (IntentExtractor)  N04 (InventoryCollector)
-          │                      │
+          │                      │   │
+          ▼                      │   └─── E51 ──► N35 (ComplexityAssessment, NEW v2)
+Wave 1.5:                            │            │
+                                     │            ├── E52 back-edge to N01 announce (advisory)
+                                     │            ├── E53 mode_mutation_signal (state)
+                                     │            └── E71 inject_n10 (forward-conditional to N10)
+                                     │
           ▼                      │
 Wave 2a:  PG2 = N05+N06 merged   │    (normal + deep + verbose + deep-verbose)
           │                      │
@@ -415,6 +421,7 @@ Columns: **Node ID | Node Name | Type | Input Schema | Output Schema | Active Mo
 | N32 | CognitiveAmplifiedAgent | **agent-spawn** | `{normalized_input, INVENTORY, resolved_contracts, strategy: "Cognitive-Amplified", assigned_trait}` | draft_xml + `VERIFICATION: PASS\|FAIL` header | verbose, deep-verbose |
 | N33 | MetaAggregator | aggregator | `{draft_xmls: [N XML strings], strategy_labels: [N strategy names], INTENT, INVENTORY, first_pass_baseline_xml?}` | aggregated_xml — single unified `<prompt>` XML with provenance annotation | verbose, deep-verbose |
 | N34 | AntiFragilityNode | attacker | `{target_xml (aggregated_xml from N33 OR N13 output in deep mode), INTENT, INVENTORY, original_weaknesses?}` | `{hardened_xml, breakage_report}` | deep, verbose, deep-verbose |
+| N35 | ComplexityAssessment | analyzer | inventory_yaml (canonical 20-key Appendix A schema; from N04 via E51) | `{topology_advisory:yaml, mode_mutation_signal:enum, complexity_assessment:yaml}` emitted via E52 (back-edge to N01 announce) / E53 (state-only) / E71 (forward-conditional to N10 inject_n10) | all (NEW v2 — 4 crisp-integer threshold dimensions; advisory-only when user passed explicit mode flag) |
 
 **Node type taxonomy:**
 - `router` — directs flow by input state or verification result (N01, N17, N27)
@@ -509,6 +516,10 @@ Columns: **Edge ID | Source → Target | Channel Name | Data Type | Cardinality 
 | **E91** | **N13 → N34** | **baseline_xml** | **XML string (KB-augmented N13 output)** | **1:1** | **deep** — single-agent deep path skips N27–N33; N13 output goes directly to anti-fragility |
 | **E92** | **N04 → N27** | **inventory_yaml** | **YAML (20-key)** | **1:1** | **verbose \| deep-verbose** — INVENTORY for complexity assessment |
 | **E93** | **N11 → N27** | **resolved_contracts** | **contract list + conflict_log** | **1:1** | **verbose \| deep-verbose** — resolved contracts for strategy-to-input matching |
+| **E51** | **N04 → N35** | **inventory_yaml** | **YAML (20-key)** | **1:1** | **always (NEW v2)** — required edge; enables N35 complexity measurement |
+| **E52** | **N35 → N01** | **topology_advisory** | **YAML advisory text** | **1:1, retry-cap=1** | **back-edge (NEW v2)** — injects advisory token into N01 announce string; one-shot, never silent topology-rewrite (AP-V29 declarative-only) |
+| **E53** | **N35 → orchestrator-state** | **mode_mutation_signal** | **enum {promote_minimal_to_normal\|promote_n34_to_spawn\|inject_n10\|downgrade_verbose_to_deep}** | **1:1** | **forward-conditional (NEW v2)** — declarative state mutation; never orchestrator-internal rewrite (AP-V29) |
+| **E71** | **N35 → N10** | **mode_mutation_signal: inject_n10** | **enum signal** | **1:1** | **forward-conditional (NEW v2)** — activates N10 AntiConformityPass when N35 detects novelty signal (dimension c ≥ 3 AND dimension d ≥ 1), regardless of mode |
 
 **Cardinality legend:**
 - `1:1` — single source, single target, single payload
@@ -567,6 +578,7 @@ Columns: **Mode | Invocation Flag(s) | Active Node IDs | KB Queries Allowed | Ma
 | N32 CognitiveAmplifiedAgent | – | – | – | ✓ | ✓ (always active per N27 deep-verbose rule) |
 | N33 MetaAggregator | – | – | – | ✓ | ✓ |
 | N34 AntiFragilityNode | – | – | ✓ | ✓ | ✓ |
+| N35 ComplexityAssessment | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 **Notes:**
 - N10 activates at the deep threshold — anti-conformity with novelty gate O3. In normal mode, anti-conformity is skipped; in deep and deep-verbose it runs.
@@ -830,6 +842,15 @@ Full per-node protocols live in the corresponding module file.
 - Output: INTENT block + INVENTORY YAML (20-key) inside the ANALYST OUTPUT marker. In minimal mode, these are the ONLY analyst outputs.
 - Marker contract: `=== ANALYST OUTPUT BEGIN ===` opens at start of Wave 1 (after Type D/announce/complexity advisory); closes at end of Wave 2 (end of analysis) or end of Wave 1 in minimal mode.
 - Hard Gate: HG1 fires here if input insufficient.
+
+**Wave 1.5 — ComplexityAssessment (N35) — NEW v2**
+- Context: Inline, orchestrator.
+- Module: `m-wave1.5-complexity.md`
+- Role: ComplexityMeasurer (read-only analyzer; declared in module).
+- Input: inventory_yaml from N04 via E51 (required edge).
+- Output: `topology_advisory` (via E52 back-edge to N01 announce — one-shot, retry-cap=1) + `mode_mutation_signal` (via E53 state-only edge or E71 forward-conditional to N10 when novelty signal). 4 crisp-integer thresholds: INVENTORY > 8 / > 18 / novelty / verbose_pressure.
+- Marker contract: None — N35 emits to graph edges, not markers.
+- Hard Gate: AP-V29 — all mutations are declarative (via declared edges); never orchestrator-internal rewrite. AP-V6 — graceful degrade when inventory_yaml is malformed or fewer than 20 keys.
 
 **Wave 2a — Parallel Analysis (PG2={N05, N06})** [normal, deep, verbose, deep-verbose]
 - Context: Inline, orchestrator — role-switched analyst.

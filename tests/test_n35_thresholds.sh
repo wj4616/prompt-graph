@@ -25,5 +25,23 @@ grep -qE 'crisp-integer|NO heuristics' "$M" \
   || { echo "FAIL: crisp-integer discipline missing"; exit 1; }
 echo "PASS crisp-integer discipline"
 
+# 7-10. SKILL.md must register N35 in node registry, edge table, and module-loading
+SKILL="$HOME/.claude/skills/prompt-graph-v2/SKILL.md"
+grep -qE '\| N35 .*ComplexityAssessment' "$SKILL" \
+  || { echo "FAIL: N35 not in node registry"; exit 1; }
+echo "PASS N35 in node registry"
+
+grep -qE 'E51.*N04.*N35|N04 . N35' "$SKILL" \
+  || { echo "FAIL: E51 not declared"; exit 1; }
+echo "PASS E51 declared"
+
+grep -qE 'E52.*N35.*N01|N35 . N01' "$SKILL" \
+  || { echo "FAIL: E52 not declared"; exit 1; }
+echo "PASS E52 declared"
+
+grep -qE 'm-wave1\.5-complexity\.md' "$SKILL" \
+  || { echo "FAIL: module-loading reference missing"; exit 1; }
+echo "PASS module-loading reference present"
+
 echo ""
 echo "ALL N35 module structural tests PASSED"
