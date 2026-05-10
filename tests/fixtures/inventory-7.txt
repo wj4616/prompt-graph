@@ -1,0 +1,8 @@
+Build a Python parser that reads CSV files and emits JSON.
+Constraints:
+1. UTF-8 only.
+2. Empty rows skipped.
+3. Quoting: RFC 4180.
+Success: pytest -q passes.
+Provenance: derived from CSV spec.
+Version: 0.1.0.
