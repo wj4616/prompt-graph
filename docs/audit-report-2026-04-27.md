@@ -1,3 +1,8 @@
+> **STATUS: v2.0 historical reference — SUPERSEDED.**
+> Current skill is v2 (29 active nodes including N35 ComplexityAssessment; path `~/.claude/skills/prompt-graph-v2/`; W1/W2/W3 deltas applied).
+> See SKILL.md for current truth. v2 manual-build notes: `docs/v-check-coverage.md`, `docs/manual-smoke-2026-05-09.md`.
+
+
 # Prompt-Graph Design Audit Report
 
 **Audit date:** 2026-04-27

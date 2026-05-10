@@ -1,3 +1,8 @@
+> **STATUS: v2.0 historical reference — SUPERSEDED.**
+> Current skill is v2 (29 active nodes including N35 ComplexityAssessment; path `~/.claude/skills/prompt-graph-v2/`; W1/W2/W3 deltas applied).
+> See SKILL.md for current truth. v2 manual-build notes: `docs/v-check-coverage.md`, `docs/manual-smoke-2026-05-09.md`.
+
+
 # prompt-graph Skill Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
