@@ -40,11 +40,16 @@
 **Step 1.5 — Memory read (Wave 0; graceful-degrade per AP-V6):**
 
 Resolve memory directory (audit F012 — derive slug from `$HOME` instead of hardcoding):
-1. If env var `PROMPT_GRAPH_MEMORY_DIR` is set, use that.
-2. Else compute the project-memory slug: `~/.claude/projects/$(echo "$HOME" | sed 's|/|-|g')/memory/`
+1. **Sanity-gate `$HOME`:** if `$HOME` is empty, equals `/`, equals `/root`, or otherwise looks unsafe, abort Memory subsystem (treat as unavailable; proceed with empty profile). One-liner gate:
+   ```
+   case "${HOME:-}" in ""|"/"|"/root"|"/etc"|"/usr"|"/var"|"/tmp") MEMORY_DIR="" ;; esac
+   ```
+   This protects against creating `/.claude/projects/--/memory/` at filesystem root when run in odd container init contexts. If MEMORY_DIR is empty after this gate, skip Memory read entirely (graceful-degrade per AP-V6).
+2. If env var `PROMPT_GRAPH_MEMORY_DIR` is set, use that.
+3. Else compute the project-memory slug: `~/.claude/projects/$(echo "$HOME" | sed 's|/|-|g')/memory/`
    - For user `myuser` with `$HOME=/home/myuser`: resolves to `~/.claude/projects/-home-myuser/memory/`.
    - For other users: resolves correctly per their `$HOME`.
-3. If that path doesn't exist, fall back to `$HOME/.claude/skills/prompt-graph-v2/memory/` (skill-local fallback per brief §8).
+4. If that path doesn't exist, fall back to `$HOME/.claude/skills/prompt-graph-v2/memory/` (skill-local fallback per brief §8).
 
 Then read the user profile via the Memory helper (this is one of two permitted Bash calls per HG3 sub-rule 3 item 4):
 
@@ -57,7 +62,18 @@ If `USER_PROFILE` is non-empty: store it in orchestrator state for later announc
 
 If `USER_PROFILE` is empty (Memory absent / unreadable / corrupt): proceed with empty profile. **No HALT, no user-facing error.** This is graceful-degradation per AP-V6.
 
-**Privacy note:** the user_profile may contain sensitive preferences. NEVER echo its raw content to stdout. The announce-string injection (added in step 3) is a one-line summary derived from preferred_modes / language only — never a full dump.
+**Privacy note (orchestrator contract):** the user_profile may contain sensitive preferences. NEVER echo its raw content to stdout. The announce-string injection (added in step 3) is a one-line summary derived from preferred_modes / language only — never a full dump. `USER_PROFILE` shall be referenced only via projected fields (preferred_modes, language) — direct echoing of the raw variable is a HG3-adjacent privacy violation. The Memory helper's `read` subcommand prints raw file content to its own stdout (captured by this orchestrator's bash subshell); the discipline lives in the orchestrator, not the helper.
+
+**Step 1.6 — Cross-run advisory probe (Wave 0, after Hook 1; W3 NEW):**
+
+Query Langfuse for prior-run counts (last 10 runs by default) showing `repair_triggered` or `af_hard_breaks > 0`. Per AP-V6 the query itself is best-effort — failure is silent. Pass the two counts to the tracer's `advisory` subcommand:
+
+```
+python3 ~/.claude/skills/prompt-graph-v2/scripts/langfuse_tracer.py advisory \
+  --repair-runs <integer> --af-runs <integer> 2>/dev/null || true
+```
+
+If the call prints a one-line advisory (≥3 threshold), append it to the announce string before emitting the announce. If Langfuse is unreachable or counts can't be obtained, pass `--repair-runs 0 --af-runs 0` (no advisory). Per AP-V6: never block.
 
 **Announce-string profile-derived hint (AP-V29 disclaimer — not a topology rewrite):** if `USER_PROFILE` from this step is non-empty AND contains a `preferred_modes:` list AND the user did NOT pass an explicit mode flag, append a single advisory line to the announce string: `[advisory: based on prior runs, consider --<mode>]` where `<mode>` is the most-frequent entry in `preferred_modes`. This is advisory-only — does NOT change the resolved `mode_dispatch`. AP-V29: this is NOT a runtime topology rewrite; the announce string is part of N01's normal output, not a graph-edge mutation.
 
@@ -108,7 +124,7 @@ If `USER_PROFILE` is empty (Memory absent / unreadable / corrupt): proceed with 
 
 **TRACE (mandatory, non-blocking) — emit the announce string, then immediately call this Bash command.** Substitute: `MODE` = detected mode (minimal/normal/deep/verbose/deep-verbose); `FLAGS` = active orthogonal flags space-separated (e.g. `--quiet --strict-verify`) or empty string; `TITLE` = first ~150 chars of normalized_input collapsed to one line (newlines → spaces, internal `"` escaped as `\"`):
 ```
-python3 ~/.claude/skills/prompt-graph/scripts/langfuse_tracer.py init --mode MODE --flags "FLAGS" --input-title "TITLE" 2>/dev/null || true
+python3 ~/.claude/skills/prompt-graph-v2/scripts/langfuse_tracer.py init --mode MODE --flags "FLAGS" --input-title "TITLE" 2>/dev/null || true
 ```
 
 ## N02 SufficiencyGate

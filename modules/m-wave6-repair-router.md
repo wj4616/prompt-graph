@@ -106,7 +106,7 @@ Emit exactly one of:
 3. **Print:** `Saved to [full absolute path]` on success.
 4. **TRACE (mandatory, non-blocking) — call this Bash command immediately after printing `Saved to`.** Substitute: `PATH` = the full absolute path just printed; `RESULT` = `PASS`, `FAIL`, or `FAIL_CAPPED` (use `FAIL_CAPPED` if the repair cap was hit and fallback XML was emitted); `RC` = 0 or 1 (1 if a repair attempt was made); `MODE` = current mode:
    ```
-   python3 ~/.claude/skills/prompt-graph/scripts/langfuse_tracer.py finalize --output-path "PATH" --final-result RESULT --repair-count RC --mode MODE 2>/dev/null || true
+   python3 ~/.claude/skills/prompt-graph-v2/scripts/langfuse_tracer.py finalize --output-path "PATH" --final-result RESULT --repair-count RC --mode MODE 2>/dev/null || true
    ```
 
 5. **`--learn` post-run topology_adjustments write (W3; only when `learn` flag is set):**
@@ -126,7 +126,7 @@ a. Construct the topology_adjustments YAML from this run's runtime signals:
    af_hard_breaks: <count from N34, else 0>
    ```
 
-b. Resolve memory directory using the same logic as N01 step 1.5 (env `PROMPT_GRAPH_MEMORY_DIR` → 2026 project memory `~/.claude/projects/$(echo "$HOME" | sed 's|/|-|g')/memory/` → skill-local fallback `$HOME/.claude/skills/prompt-graph-v2/memory/`).
+b. Resolve memory directory using the IDENTICAL logic as N01 step 1.5 (sanity-gate `$HOME` for empty/`/`/`/root`/`/etc`/`/usr`/`/var`/`/tmp` → env `PROMPT_GRAPH_MEMORY_DIR` → 2026 project memory `~/.claude/projects/$(echo "$HOME" | sed 's|/|-|g')/memory/` → skill-local fallback `$HOME/.claude/skills/prompt-graph-v2/memory/`). If MEMORY_DIR is empty after the sanity gate, skip the Memory write entirely (graceful-degrade per AP-V6).
 
 c. Write via the Memory helper (this is the permitted second Bash call per HG3 sub-rule 3 item 4):
    ```
