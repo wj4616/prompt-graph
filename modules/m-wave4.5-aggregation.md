@@ -99,15 +99,6 @@ Before emitting the aggregated XML, compare against N13's first-pass baseline:
 
 This is the GoT double-tree safety net. The aggregation tree's output MUST be better than any single leaf's output. If it's not, the tree collapsed back to the best leaf.
 
-**Baseline-with-FAIL-self-report fallback (DC2):** N13's `VERIFICATION:` self-check is informational only — the orchestrator accepts the baseline regardless of self-reported PASS/FAIL (per m-wave4-synthesis.md "Agent-Signal Informational Only"). When the revert path fires AND the baseline self-reported FAIL: emit the baseline with an additional warning annotation, but do NOT attempt a second multi-path pass:
-```
-<!-- WARNING: First-pass baseline self-reported VERIFICATION: FAIL — [agent's
-     summary]. Aggregation also failed. Wave 5 verification will run on this
-     output as a last line of defense. If Wave 5 also FAILs, the repair loop
-     fires per O6. -->
-```
-The Wave 5 → Wave 6 path still applies — the FAIL-self-reported baseline is treated as the candidate XML for verification. This avoids losing both passes; the worst-case path is `verbose pipeline → flagged baseline → Wave 5 failure → repair (1 attempt) → final fallback`. Never produce no output.
-
 ### 7. Output Format
 
 ```

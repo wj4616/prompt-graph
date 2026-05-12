@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# prompt-graph smoke test runner — covers SKILL.md Tests A-V (v2: S/T/U manual-only protocol notes)
+# prompt-graph smoke test runner — covers SKILL.md Tests A-R
 #
 # Usage:
 #   ./run-smoke-tests.sh              # essential: static + essential runtime (default)
@@ -76,7 +76,7 @@ run_static() {
     check_file "Section 8 Smoke Test Checklist header" "## Section 8 — Smoke Test Checklist" "$SKILL_MD"
 
     # Modules exist
-    for mod in m-wave0-1-input m-wave2-analysis m-wave3-contracts m-wave4-synthesis m-wave5-verification m-wave6-repair-router m-wave7-9-verbose-expansion m-wave4.5a-kb-branch m-wave4.5b-multi-synthesis m-wave4.5-aggregation m-wave4.5-anti-fragility; do
+    for mod in m-wave0-1-input m-wave2-analysis m-wave3-contracts m-wave4-synthesis m-wave5-verification m-wave6-repair-router m-wave7-9-verbose-expansion m-wave3.5-kb-branch m-wave4-multi-synthesis m-wave4.5-aggregation m-wave4.5-anti-fragility; do
         if [[ -f "$SKILL_DIR/modules/$mod.md" ]]; then
             printf "  ${G}✓${N} [S] module file exists: $mod.md\n"; ((PASS_S++)) || true
         else
